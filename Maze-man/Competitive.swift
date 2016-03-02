@@ -55,7 +55,6 @@ class Competitive: SKScene {
         if defaults.integerForKey("points") < 100 {
             defaults.setInteger(100, forKey: "points")
         }
-        print("Hello, my creators!")
         
         //backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
