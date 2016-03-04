@@ -52,6 +52,7 @@ class Competitive: SKScene {
     }
     
     override func didMoveToView(view: SKView) {
+        print("Den")
         if defaults.integerForKey("points") < 100 {
             defaults.setInteger(100, forKey: "points")
         }
