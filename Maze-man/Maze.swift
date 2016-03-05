@@ -39,12 +39,13 @@ class Maze {
     var willPlayerDirection: Int?
     var playerSpeed: CGFloat?
     var kSpeed: CGFloat = 1.0
-    var movePlayerDirection = 4 //Куда плееру двигаться; если 4, то он стоит на месет
+    var movePlayerDirection = 4 //Куда плееру двигаться; если 4, то он стоит на месте
     var moveResolution = true
     var speedTimer: Double = 0.0 //Время для ускорялок
     var playTimer = true //Если false, то таймер на паузе
+    var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
     
-    init(blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0) {
+    init(blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
         self.blockCount = blockCount
         self.startBlockPosition = (i: startBlockI, j: startBlockJ)
         self.finishBlockPosition = (i: finishBlockI, j: finishBlockJ)
@@ -80,11 +81,15 @@ class Maze {
         if inversions > 0 {
             addInversion(inversions)
         }
+        if warders > 0 {
+            addWarders(warders)
+        }
     }
     
     func playerSettings() {
         //player = SKShapeNode(rectOfSize: blockSize!)
         player = SKSpriteNode(imageNamed: "player0")
+        player!.name = "player"
         player!.size = blockSize!
         player!.position = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
         player!.zPosition = 5
@@ -188,6 +193,8 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int((actualPoint!.i + 3) / 9)][Int(actualPoint!.j / 9)] = true
+                } else if maze![actualPoint!.i + 3][actualPoint!.j] == 1 && (maze![actualPoint!.i + 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i + 2][actualPoint!.j - 1] == 1) {
+                    warderVariants.append((i: actualPoint!.i + 4, j: actualPoint!.j, direction: 0))
                 }
             case 1:
                 maze![actualPoint!.i][actualPoint!.j + 1] = 1
@@ -199,6 +206,8 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int(actualPoint!.i / 9)][Int((actualPoint!.j - 3) / 9)] = true
+                } else if maze![actualPoint!.i][actualPoint!.j - 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j - 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j - 2] == 1) {
+                    warderVariants.append((i: actualPoint!.i, j: actualPoint!.j - 4, direction: 1))
                 }
             case 2:
                 maze![actualPoint!.i + 1][actualPoint!.j] = 1
@@ -210,6 +219,8 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int((actualPoint!.i - 3) / 9)][Int(actualPoint!.j / 9)] = true
+                } else if maze![actualPoint!.i - 3][actualPoint!.j] == 1 && (maze![actualPoint!.i - 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i - 2][actualPoint!.j - 1] == 1) {
+                    warderVariants.append((i: actualPoint!.i - 4, j: actualPoint!.j, direction: 2))
                 }
             case 3:
                 maze![actualPoint!.i][actualPoint!.j - 1] = 1
@@ -221,6 +232,8 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int(actualPoint!.i / 9)][Int((actualPoint!.j + 3) / 9)] = true
+                } else if maze![actualPoint!.i][actualPoint!.j + 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j + 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j + 2] == 1) {
+                    warderVariants.append((i: actualPoint!.i, j: actualPoint!.j + 4, direction: 3))
                 }
             default: break
             }
@@ -812,6 +825,84 @@ class Maze {
     func inversion() {
         bg!.color = SKColor.whiteColor()
         mazeShape!.fillColor = SKColor.blackColor()
+    }
+    
+    //Тут остановился. Надо расчитать длину пути смотрителя, чтобы он мог передвигаться по координатам (runAction)
+    func addWarders(count: Int) {
+        if warderVariants.count > 0 {
+            for i in 0...count-1 {
+                let randomWarder = Int(random(min: 0, max: CGFloat(warderVariants.count)))
+                var pathLength = 0 //Для пути (в блоках)
+                
+                switch warderVariants[randomWarder].direction {
+                case 0:
+                    //Отодвигаем смотрителя в угол, чтобы он не стартовал с середины
+                    while maze![warderVariants[randomWarder].i + 1][warderVariants[randomWarder].j] != 0 {
+                        warderVariants[randomWarder].i += 2
+                    }
+                    //Считаем длину его пути
+                    while maze![warderVariants[randomWarder].i - pathLength - 1][warderVariants[randomWarder].j] != 0 {
+                        pathLength += 1
+                    }
+                case 1:
+                    while maze![warderVariants[randomWarder].i][warderVariants[randomWarder].j - 1] != 0 {
+                        warderVariants[randomWarder].j -= 2
+                    }
+                    while maze![warderVariants[randomWarder].i][warderVariants[randomWarder].j + pathLength + 1] != 0 {
+                        pathLength += 1
+                    }
+                case 2:
+                    while maze![warderVariants[randomWarder].i - 1][warderVariants[randomWarder].j] != 0 {
+                        warderVariants[randomWarder].i -= 2
+                    }
+                    while maze![warderVariants[randomWarder].i + pathLength + 1][warderVariants[randomWarder].j] != 0 {
+                        pathLength += 1
+                    }
+                case 3:
+                    while maze![warderVariants[randomWarder].i][warderVariants[randomWarder].j + 1] != 0 {
+                        warderVariants[randomWarder].j += 2
+                    }
+                    while maze![warderVariants[randomWarder].i][warderVariants[randomWarder].j - pathLength - 1] != 0 {
+                        pathLength += 1
+                    }
+                default: break
+                }
+                
+                let warder = SKSpriteNode(color: UIColor.orangeColor(), size: blockSize!)
+                warder.name = "warder"
+                warder.position = CGPoint(x: blockSize!.width * CGFloat(warderVariants[randomWarder].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(warderVariants[randomWarder].i))
+                warder.zPosition = 6
+                bg!.addChild(warder)
+                
+                //Тут заставляем его двигаться (туда и обратно, так вечно)
+                switch warderVariants[randomWarder].direction {
+                case 0: warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveBy(CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveBy(CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                case 1: print("Вправо")
+                    warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveByX(CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveByX(-CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                case 2: warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveBy(CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveBy(CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                case 3: print("Влево")
+                    warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveByX(-CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveByX(CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                default: break
+                }
+                //warder.runAction(SKAction.repeatActionForever(SKAction.sequence([])))
+                
+                warderVariants.removeAtIndex(randomWarder)
+            }
+        } else {
+            print("fail")
+        }
+    }
+    
+    //Проверяем столкновение плеера и смотрителя
+    func checkCollisions() -> Bool {
+        var boom = false
+        bg!.enumerateChildNodesWithName("warder") { node, _ in
+            let ward = node as! SKSpriteNode
+            if CGRectIntersectsRect(self.player!.frame, ward.frame) {
+                boom = true
+            }
+        }
+        return boom
     }
     
     @objc func switchTimer() {

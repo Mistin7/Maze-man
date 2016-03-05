@@ -93,6 +93,11 @@ class Competitive: SKScene {
                 default: break
                 }
             }
+            
+            //Если столкнулись со смотрителем, то мы проиграли
+            if maze!.checkCollisions() {
+                weLosed()
+            }
         } else {
             print(lvlLineMask.position)
         }
@@ -244,20 +249,32 @@ class Competitive: SKScene {
         
         countLvlUp = (defaults.integerForKey("points") % 100 + Int(350/count)) / 100
         //runAction(SKAction.sequence([SKAction.waitForDuration(1), SKAction.runBlock(showResultBg)]))
-        showResultBg()
+        showResultBg(true)
         
         saveHighscore(defaults.integerForKey("points") / 100)
     }
     
-    func showResultBg() {
+    func weLosed() {
+        print("You losed!")
+        timer.invalidate()
+        countLvlUp = 0
+        showResultBg(false)
+    }
+    
+    func showResultBg(win: Bool) {
         stopPlaying = true
         resultBg!.hidden = false
-        plusPercent.text = "+\(Int(350/count))%"
         lvlLineMask.position.x = -lvlLine!.size.width * 1.5 + CGFloat(defaults.integerForKey("points")) % 100 / 100 * lvlLine!.size.width //Как выглядит полоса до прибавки процентов
         currentLvl.text = "\(Int(defaults.integerForKey("points") / 100)) lvl"
         nextLvl.text = "\(Int(defaults.integerForKey("points") / 100) + 1) lvl"
         
-        dtWithLvlLine = 3.5 / CGFloat(count) * lvlLine!.size.width
+        if win {
+            dtWithLvlLine = 3.5 / CGFloat(count) * lvlLine!.size.width
+            plusPercent.text = "+\(Int(350/count))%"
+        } else {
+            dtWithLvlLine = 0
+            plusPercent.text = "0%"
+        }
         timeOfLvlLineEvolution = 2.0
         //var dtPoints: CGFloat = CGFloat(3.5/count) //Сколько плеер поднял процентов/100 за раунд
         //Тут остановился
@@ -312,7 +329,8 @@ class Competitive: SKScene {
         case 18...19: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true)
         case 20...24: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 1, speedRoads: true)
         case 25...27: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true)
-        case 28...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1)
+        case 28...33: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1)
+        case 34...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)
         default: break
         }
         //maze = Maze(blockCount: 19, mazeSize: size, finishBlockI: 17, finishBlockJ: 17)
