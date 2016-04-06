@@ -44,6 +44,7 @@ class Maze {
     var speedTimer: Double = 0.0 //Время для ускорялок
     var playTimer = true //Если false, то таймер на паузе
     var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
+    var coins: [(coin: SKSpriteNode, i: Int, j: Int)] = [] //Используем только при построении, при игре - нет
     
     init(blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
         self.blockCount = blockCount
@@ -84,6 +85,7 @@ class Maze {
         if warders > 0 {
             addWarders(warders)
         }
+        addCoins()
     }
     
     func playerSettings() {
@@ -245,14 +247,22 @@ class Maze {
     //Проверяем, заполнен массив или нет
     func checkBlocks() -> Bool {
         var q = false
-        for var i = 1; i < maze!.count; i += 2 {
-            for var j = 1; j < maze![0].count; j += 2 {
+        for i in 1.stride(to: maze!.count, by: 2) {
+            for j in 1.stride(to: maze![0].count, by: 2) {
                 if maze![i][j] == 0 {
                     q = true
                     break
                 }
             }
         }
+        /*for var i = 1; i < maze!.count; i += 2 {
+            for var j = 1; j < maze![0].count; j += 2 {
+                if maze![i][j] == 0 {
+                    q = true
+                    break
+                }
+            }
+        }*/
         return q
     }
     //Удаляем белые блоки, которые окружены другими белыми блоками(чтобы не продолжать лабиринт оттуда)
@@ -474,7 +484,7 @@ class Maze {
             bg!.addChild(arrayWithTP[i].teleport)
         }
     }
-    //добавляем цвет добавляем цвет телепортам
+    //добавляем цвет телепортам
     func fillColorTP(number: Int) -> SKColor{
         switch number{
         case 0,1: return SKColor.brownColor()
@@ -484,6 +494,61 @@ class Maze {
         default: break
         }
         return SKColor.brownColor()
+    }
+    
+    //Добавляем монетки
+    func addCoins(){
+        let numberOfCoins = Int(random(min: 1.0, max: CGFloat(blockCount! * blockCount! / 20)))
+        for i in 1...numberOfCoins {
+            generateCoin()
+            if i < (coins.count - 2) { break }
+        }
+    }
+    func generateCoin(i: Int? = nil, j: Int? = nil, child: Bool = false) {
+        var a: Int
+        var b: Int
+        if i != nil &&  j != nil {
+            a = i!
+            b = j!
+        } else {
+            repeat {
+                a = Int(random(min: 1, max: CGFloat(blockCount!)-1))
+                b = Int(random(min: 1, max: CGFloat(blockCount!)-1))
+            } while maze![a][b] != 1 || chekCoinPos(a, j: b) || (a == 1 && b == 1)
+        }
+        let coin = SKSpriteNode(imageNamed: "coin")
+        coin.name = "coin"
+        coin.zPosition = 5
+        coin.size = blockSize!
+        coin.position = CGPoint(x: blockSize!.width * CGFloat(b) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(a))
+        bg!.addChild(coin)
+        
+        coins.append((coin: coin, i: a, j: b))
+        
+        if !child {
+            
+            if maze![a-1][b] == 1 && !chekCoinPos(a-1, j: b) && random(min: 0, max: 1) > 0.45 {
+                generateCoin(a-1, j: b, child: true)
+            }
+            if maze![a][b-1] == 1 && !chekCoinPos(a, j: b-1) && random(min: 0, max: 1) > 0.45 {
+                generateCoin(a, j: b-1, child: true)
+            }
+            if maze![a+1][b] == 1 && !chekCoinPos(a+1, j: b) && random(min: 0, max: 1) > 0.45 {
+                generateCoin(a+1, j: b, child: true)
+            }
+            if maze![a][b+1] == 1 && !chekCoinPos(a, j: b+1) && random(min: 0, max: 1) > 0.45 {
+                generateCoin(a, j: b+1, child: true)
+            }
+        }
+    }
+    //Проверяем, есть ли по введённой координате монета (true - есть монета)
+    func chekCoinPos(i: Int, j: Int) -> Bool {
+        for coin in coins {
+            if coin.i == i && coin.j == j {
+                return true
+            }
+        }
+        return false
     }
     //Проверяем на тупик
     func checkDeadLock(positionI: Int, positionJ: Int) -> Bool {
@@ -894,15 +959,25 @@ class Maze {
     }
     
     //Проверяем столкновение плеера и смотрителя
-    func checkCollisions() -> Bool {
-        var boom = false
+    // 0 - ни с чем не столкнулись
+    // 1 - столкнулись со смотрителем
+    // 2 - взяли монетку
+    func checkCollisions() -> Int {
+        var result = 0
         bg!.enumerateChildNodesWithName("warder") { node, _ in
             let ward = node as! SKSpriteNode
             if CGRectIntersectsRect(self.player!.frame, ward.frame) {
-                boom = true
+                result = 1
             }
         }
-        return boom
+        bg!.enumerateChildNodesWithName("coin") { node, _ in
+            let coin = node as! SKSpriteNode
+            if CGRectIntersectsRect(self.player!.frame, coin.frame) {
+                coin.removeFromParent()
+                result = 2
+            }
+        }
+        return result
     }
     
     @objc func switchTimer() {

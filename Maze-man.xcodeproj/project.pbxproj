@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		85015DB21C7068E300E1B067 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85015DB11C7068E300E1B067 /* GameKit.framework */; };
+		85A3FE901C8D75CA00AF8C03 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */; };
+		85A3FE921C8D761100AF8C03 /* CompetitiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */; };
 		85E0C70B1C6FAB0A003215B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C70A1C6FAB0A003215B1 /* AppDelegate.swift */; };
 		85E0C70D1C6FAB0A003215B1 /* GameScene.sks in Resources */ = {isa = PBXBuildFile; fileRef = 85E0C70C1C6FAB0A003215B1 /* GameScene.sks */; };
 		85E0C70F1C6FAB0A003215B1 /* GameScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C70E1C6FAB0A003215B1 /* GameScene.swift */; };
@@ -19,6 +21,8 @@
 		85E0C72F1C6FAD6E003215B1 /* Competitive.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C72E1C6FAD6E003215B1 /* Competitive.swift */; };
 		85E0C7311C6FADF4003215B1 /* Maze.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C7301C6FADF4003215B1 /* Maze.swift */; };
 		85E0C7331C6FAE0D003215B1 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C7321C6FAE0D003215B1 /* Settings.swift */; };
+		85FDD5F31C8ED9060063624E /* Free.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FDD5F21C8ED9060063624E /* Free.swift */; };
+		85FDD5F51C8ED9860063624E /* FreeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FDD5F41C8ED9860063624E /* FreeViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +37,8 @@
 
 /* Begin PBXFileReference section */
 		85015DB11C7068E300E1B067 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
+		85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompetitiveViewController.swift; sourceTree = "<group>"; };
 		85E0C7071C6FAB0A003215B1 /* Maze-man.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Maze-man.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		85E0C70A1C6FAB0A003215B1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		85E0C70C1C6FAB0A003215B1 /* GameScene.sks */ = {isa = PBXFileReference; lastKnownFileType = file.sks; path = GameScene.sks; sourceTree = "<group>"; };
@@ -48,6 +54,8 @@
 		85E0C72E1C6FAD6E003215B1 /* Competitive.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Competitive.swift; sourceTree = "<group>"; };
 		85E0C7301C6FADF4003215B1 /* Maze.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Maze.swift; sourceTree = "<group>"; };
 		85E0C7321C6FAE0D003215B1 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		85FDD5F21C8ED9060063624E /* Free.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Free.swift; sourceTree = "<group>"; };
+		85FDD5F41C8ED9860063624E /* FreeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FreeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +105,10 @@
 				85E0C72E1C6FAD6E003215B1 /* Competitive.swift */,
 				85E0C7301C6FADF4003215B1 /* Maze.swift */,
 				85E0C7321C6FAE0D003215B1 /* Settings.swift */,
+				85FDD5F21C8ED9060063624E /* Free.swift */,
+				85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */,
+				85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */,
+				85FDD5F41C8ED9860063624E /* FreeViewController.swift */,
 				85E0C7101C6FAB0A003215B1 /* GameViewController.swift */,
 				85E0C7121C6FAB0A003215B1 /* Main.storyboard */,
 				85E0C7151C6FAB0A003215B1 /* Assets.xcassets */,
@@ -225,6 +237,10 @@
 			files = (
 				85E0C7331C6FAE0D003215B1 /* Settings.swift in Sources */,
 				85E0C70F1C6FAB0A003215B1 /* GameScene.swift in Sources */,
+				85FDD5F31C8ED9060063624E /* Free.swift in Sources */,
+				85A3FE921C8D761100AF8C03 /* CompetitiveViewController.swift in Sources */,
+				85FDD5F51C8ED9860063624E /* FreeViewController.swift in Sources */,
+				85A3FE901C8D75CA00AF8C03 /* SettingsViewController.swift in Sources */,
 				85E0C72F1C6FAD6E003215B1 /* Competitive.swift in Sources */,
 				85E0C7111C6FAB0A003215B1 /* GameViewController.swift in Sources */,
 				85E0C70B1C6FAB0A003215B1 /* AppDelegate.swift in Sources */,

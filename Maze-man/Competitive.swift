@@ -28,6 +28,8 @@ class Competitive: SKScene {
     let defaults = NSUserDefaults.standardUserDefaults()
     var results: Double = 0
     
+    var coinsCountLabel = SKLabelNode()  //Текст с количеством монет
+    
     //Результат после финиша
     var resultBg: SKSpriteNode?
     var continueButton = SKSpriteNode(imageNamed: "playButton2")
@@ -70,6 +72,8 @@ class Competitive: SKScene {
         backButton.size = CGSize(width: 50, height: 50)
         backButton.position = CGPoint(x: 70, y: size.height - 70)
         addChild(backButton)
+        //Добавляем кол-во  монеток на экран
+        addCoinsInfo()
     }
     
     override func update(currentTime: NSTimeInterval) {
@@ -95,9 +99,20 @@ class Competitive: SKScene {
             }
             
             //Если столкнулись со смотрителем, то мы проиграли
-            if maze!.checkCollisions() {
+            /*if maze!.checkCollisions() {
                 weLosed()
+            }*/
+            //Проверяем на столкновение (смотрели, монетки)
+            switch maze!.checkCollisions() {
+            case 0: break
+            case 1: weLosed(); break
+            case 2:
+                defaults.setInteger(defaults.integerForKey("coins") + 1, forKey: "coins")
+                coinsCountLabel.text = "\(defaults.integerForKey("coins")) coins"
+                break
+            default: break
             }
+            
         } else {
             print(lvlLineMask.position)
         }
@@ -276,6 +291,8 @@ class Competitive: SKScene {
             plusPercent.text = "0%"
         }
         timeOfLvlLineEvolution = 2.0
+        
+        let dtWithLvlLine2 = dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
         //var dtPoints: CGFloat = CGFloat(3.5/count) //Сколько плеер поднял процентов/100 за раунд
         //Тут остановился
         if countLvlUp == 0 {
@@ -287,12 +304,13 @@ class Competitive: SKScene {
                 SKAction.runBlock({
                     self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
                     print(self.dtWithLvlLine!)
-                    self.dtWithLvlLine! = self.dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
+                    //self.dtWithLvlLine! = self.dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
                     print("lvlUp")
-                    print(self.dtWithLvlLine!)
+                    //print(self.dtWithLvlLine!)
                 }),
                 SKAction.waitForDuration(1),
-                SKAction.moveByX(dtWithLvlLine!, y: 0, duration: 2)
+                //SKAction.moveByX(self.dtWithLvlLine!, y: 0, duration: 2)
+                SKAction.moveByX(dtWithLvlLine2, y: 0, duration: 2)
                 ]))
         } else if countLvlUp > 1 {
             lvlLineMask.runAction(SKAction.sequence([
@@ -395,6 +413,22 @@ class Competitive: SKScene {
         bgBasic!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         bgBasic!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         addChild(bgBasic!)
+    }
+    
+    func addCoinsInfo() {
+        var coinIcon = SKSpriteNode(imageNamed: "coin")
+        coinIcon.size = CGSize(width: 50, height: 50)
+        coinIcon.position = CGPoint(x: 70, y: 70)
+        addChild(coinIcon)
+        
+        coinsCountLabel.text = "\(defaults.integerForKey("coins")) coins"
+        coinsCountLabel.position = CGPoint(x: 160, y: 57)
+        coinsCountLabel.fontColor = SKColor.whiteColor()
+        coinsCountLabel.fontSize = 34
+        coinsCountLabel.fontName = "Chalkboard SE Bold"
+        coinsCountLabel.name = "coinsCount"
+        coinsCountLabel.zPosition = 99
+        addChild(coinsCountLabel)
     }
     
     func addTimer() {

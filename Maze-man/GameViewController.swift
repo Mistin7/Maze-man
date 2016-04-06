@@ -15,23 +15,70 @@ func random(min min: CGFloat, max: CGFloat) -> CGFloat {
     assert(min <= max)
     return CGFloat(Float(arc4random()) / Float(UInt32.max)) * (max - min) + min
 }
-
 class GameViewController: UIViewController {
+    @IBOutlet public weak var scrollView: UIScrollView!
+    
     var backgroundMusicPlayer: AVAudioPlayer!
 
     override func viewDidLoad() {
-        super.viewDidLoad()
+        let settingsVC = SettingsViewController()
+        
+        self.addChildViewController(settingsVC)
+        scrollView.addSubview(settingsVC.view)
+        settingsVC.didMoveToParentViewController(self)
+        
+        //var frameSettings = settingsVC.view.frame
+        //var frameSettings = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: settingsVC.view.frame.width, height: settingsVC.view.frame.height))
+        //frameSettings.origin.x = self.view.frame.size.width
+        //settingsVC.view.frame = frameSettings
+        
+        
+        let competitiveVC = CompetitiveViewController()
+        
+        self.addChildViewController(competitiveVC)
+        scrollView.addSubview(competitiveVC.view)
+        competitiveVC.didMoveToParentViewController(self)
+        
+        var frameCompetitive = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: competitiveVC.view.frame.width, height: competitiveVC.view.frame.height))
+        competitiveVC.view.frame = frameCompetitive
+        
+        
+        let freeVC = FreeViewController()
+        
+        self.addChildViewController(freeVC)
+        scrollView.addSubview(freeVC.view)
+        freeVC.didMoveToParentViewController(self)
+        
+        var frameFree = CGRect(origin: CGPoint(x: self.view.frame.size.width * 2, y: 0), size: CGSize(width: freeVC.view.frame.width, height: freeVC.view.frame.height))
+        freeVC.view.frame = frameFree
+        
+        
+        scrollView.contentSize = CGSizeMake(self.view.frame.size.width * 3, self.view.frame.size.height) //Задаём длину нашей прокрутки
+        scrollView.contentOffset.x = self.view.frame.size.width //Делаем, чтобы сначала показывался второй экран, а не первый
+        
+        //self.scrollView.setContentOffset(self.scrollView.contentOffset, animated: true)
+        self.scrollView.scrollEnabled = false //Перестаёт перелистывать сцены
+        //self.scrollView.directionalLockEnabled = true
+        //self.scrollView.canCancelContentTouches = true
+        //self.scrollView.delaysContentTouches = true
+        //http://stackoverflow.com/questions/31085728/when-programatically-creating-a-viewcontroller-how-can-i-set-its-view-to-be-of/31093001#31093001
+        //http://stackoverflow.com/questions/31373244/thread-1-signal-sigabrt-crash-when-casting-uiview-to-skview
+        //http://stackoverflow.com/questions/30792196/could-not-cast-value-of-type-uiview-0x112484eb0-to-skview-0x111646718 ?
+        //https://www.veasoftware.com/posts/swipe-navigation-in-swift-xcode-7-ios-9-tutorial
+        
+        /*super.viewDidLoad()
         let skView = self.view as! SKView
         var size = skView.bounds.size
         size.width *= 2
         size.height *= 2
         let scene = GameScene(size: size)
+        //let scene = Competitive(size: size)
         skView.showsFPS = true
         skView.showsNodeCount = true
         skView.ignoresSiblingOrder = true
         skView.showsPhysics = false
         scene.scaleMode = .AspectFill
-        skView.presentScene(scene)
+        skView.presentScene(scene)*/
         
         /*switch Int(random(min: 0, max: 2)) {
         case 0: playBackgroundMusic("20_dollars_in_my_pocket.mp3")

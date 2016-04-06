@@ -13,6 +13,7 @@ class Settings: SKScene {
     var backButton = SKSpriteNode(imageNamed: "backButton")
     let defaults = NSUserDefaults.standardUserDefaults()
     override func didMoveToView(view: SKView) {
+        print("settings scene")
         backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         
         if defaults.boolForKey("sound") { soundButton.texture = SKTexture(imageNamed: "soundOff") }
@@ -23,8 +24,17 @@ class Settings: SKScene {
         
         //Кнопка в главное меню
         backButton.size = CGSize(width: 50, height: 50)
+        //backButton.position = CGPoint(x: 70 + size.width, y: size.height - 70)
         backButton.position = CGPoint(x: 70, y: size.height - 70)
         addChild(backButton)
+        print(size)
+    }
+    override init(size: CGSize) {
+        super.init(size: size)
+    }
+
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
         for touch: AnyObject in touches {
