@@ -17,6 +17,8 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
     var settingsButton = SKSpriteNode(imageNamed: "settingsButton")
     var logo = SKSpriteNode(imageNamed: "logo")
     override func didMoveToView(view: SKView) {
+        NSNotificationCenter.defaultCenter().postNotificationName("game mode Off", object: self)
+        
         backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         
         playButton.size = CGSize(width: 250, height: 110)

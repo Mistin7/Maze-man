@@ -58,6 +58,8 @@ class Competitive: SKScene {
             defaults.setInteger(100, forKey: "points")
         }
         
+        NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
+        
         //backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         addBg() //Добавляем самый базовый background
@@ -74,6 +76,8 @@ class Competitive: SKScene {
         addChild(backButton)
         //Добавляем кол-во  монеток на экран
         addCoinsInfo()
+        
+        //GameViewController.data.scrollView.scrollEnabled = false
     }
     
     override func update(currentTime: NSTimeInterval) {

@@ -15,12 +15,18 @@ func random(min min: CGFloat, max: CGFloat) -> CGFloat {
     assert(min <= max)
     return CGFloat(Float(arc4random()) / Float(UInt32.max)) * (max - min) + min
 }
+
 class GameViewController: UIViewController {
-    @IBOutlet public weak var scrollView: UIScrollView!
+    weak var scrollView: UIScrollView!
+    //@IBOutlet weak var scrollView: UIScrollView!
+    //var scrollView: UIScrollView!
     
     var backgroundMusicPlayer: AVAudioPlayer!
 
     override func viewDidLoad() {
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "gameModeOn", name: "game mode On", object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "gameModeOff", name: "game mode Off", object: nil)
+        
         let settingsVC = SettingsViewController()
         
         self.addChildViewController(settingsVC)
@@ -55,9 +61,10 @@ class GameViewController: UIViewController {
         
         scrollView.contentSize = CGSizeMake(self.view.frame.size.width * 3, self.view.frame.size.height) //Задаём длину нашей прокрутки
         scrollView.contentOffset.x = self.view.frame.size.width //Делаем, чтобы сначала показывался второй экран, а не первый
+        //scrollView.contentOffset.x = self.view.frame.size.width * 2 //Делаем, чтобы сначала показывался третий экран, а не первый
         
         //self.scrollView.setContentOffset(self.scrollView.contentOffset, animated: true)
-        self.scrollView.scrollEnabled = false //Перестаёт перелистывать сцены
+        scrollView.scrollEnabled = true //Перестаёт перелистывать сцены
         //self.scrollView.directionalLockEnabled = true
         //self.scrollView.canCancelContentTouches = true
         //self.scrollView.delaysContentTouches = true
@@ -88,6 +95,13 @@ class GameViewController: UIViewController {
         //playBackgroundMusic("20_dollars_in_my_pocket.mp3")//
         
         authenticateLocalPlayer()
+    }
+    
+    func gameModeOn() {
+        scrollView.scrollEnabled = false //Перестаёт перелистывать сцены
+    }
+    func gameModeOff() {
+        scrollView.scrollEnabled = true //Перестаёт перелистывать сцены
     }
     
     func playBackgroundMusic(filename: String) {

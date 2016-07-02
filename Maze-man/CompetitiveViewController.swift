@@ -29,7 +29,8 @@ class CompetitiveViewController: UIViewController {
         skView.showsPhysics = false
         scene.scaleMode = .AspectFill
         skView.presentScene(scene)
-
+        
+        //super.scrollView.scrollEnabled = false
         // Do any additional setup after loading the view.
     }
 

@@ -46,12 +46,16 @@ class Maze {
     var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
     var coins: [(coin: SKSpriteNode, i: Int, j: Int)] = [] //Используем только при построении, при игре - нет
     
-    init(blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
+    init(competitiveMod: Bool = true, blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize? = nil, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
         self.blockCount = blockCount
         self.startBlockPosition = (i: startBlockI, j: startBlockJ)
         self.finishBlockPosition = (i: finishBlockI, j: finishBlockJ)
         self.actualPoint = self.startBlockPosition
-        self.mazeSize = mazeSize
+        if mazeSize == nil {
+            self.mazeSize = CGSize(width: blockCount * 30, height: blockCount * 30)
+        } else {
+            self.mazeSize = mazeSize!
+        }
         playerPosition = (i: self.startBlockPosition.i, j: self.startBlockPosition.j)
         whiteBlocks.append((i: startBlockI, j: startBlockI))
         square = [[Bool]](count: blockCount/9 + 1, repeatedValue: [Bool](count: blockCount/9 + 1, repeatedValue: false))
@@ -70,22 +74,23 @@ class Maze {
         playerSettings()
         self.willPlayerPosition = player!.position
         
-        if timer > 0 {
-            generateTimer(timer)
+        if competitiveMod {
+            print("CompetitiveMod")
+            if timer > 0 { generateTimer(timer) }
+            if speedRoads { addSpeedRoads() }
+            if teleports > 0 { addTeleport(teleports * 2) }
+            if inversions > 0 { addInversion(inversions) }
+            if warders > 0 { addWarders(warders) }
+            addCoins()
+        } else {
+            print("FreeMod")
+            //По плану сделать столько-то итемов на каждые 100 квадратиков (10х10)
+            if timer > 0 { generateTimer(timer) }
+            if speedRoads { addSpeedRoads() }
+            if teleports > 0 { addTeleport(teleports * 2) }
+            if inversions > 0 { addInversion(inversions) }
+            if warders > 0 { addWarders(warders) }
         }
-        if speedRoads {
-            addSpeedRoads()
-        }
-        if teleports > 0 {
-            addTeleport(teleports * 2)
-        }
-        if inversions > 0 {
-            addInversion(inversions)
-        }
-        if warders > 0 {
-            addWarders(warders)
-        }
-        addCoins()
     }
     
     func playerSettings() {
