@@ -46,11 +46,17 @@ class Maze {
     var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
     var coins: [(coin: SKSpriteNode, i: Int, j: Int)] = [] //Используем только при построении, при игре - нет
     
+    
+    var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"] // добавляем различные скины для сцен
+    var randomScenery: String
+    
+    
     init(competitiveMod: Bool = true, blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize? = nil, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
         self.blockCount = blockCount
         self.startBlockPosition = (i: startBlockI, j: startBlockJ)
         self.finishBlockPosition = (i: finishBlockI, j: finishBlockJ)
         self.actualPoint = self.startBlockPosition
+        randomScenery = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         if mazeSize == nil {
             self.mazeSize = CGSize(width: blockCount * 30, height: blockCount * 30)
         } else {
@@ -290,8 +296,8 @@ class Maze {
         bg!.position = CGPoint(x: -bg!.frame.width / 2, y: bg!.frame.height / 2)
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
-        var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
-        var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
+        //var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
+        //var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         for row in 1..<maze!.count-1 {
             var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
@@ -628,12 +634,13 @@ class Maze {
     //Потом удалить (пробник)
     func generateShape2() {
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: "roads")
-        for row in 0..<maze!.count {
+        for row in 1..<maze!.count-1 {
             let line = maze![row]
             for (col, code) in line.enumerate() {
                 var tile: SKNode?
                 switch code {
                 case 0:
+                    addDecor(row, col: col)
                     //tile = SKSpriteNode(texture: atlas!.textureNamed("bgtile-main"))
                     continue
                 case 1:
@@ -689,6 +696,31 @@ class Maze {
                 tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
                 tile!.zPosition = 2
                 bg!.addChild(tile!)
+            }
+        }
+    }
+    
+    //функция, которая расставляет декорации
+    func addDecor(row: Int, col: Int){
+        let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
+        let line = maze![row]
+        if (maze![row+1][col] == 0 || maze![row-1][col] == 0) && col != 0  && col != (line.count - 1) {
+            var randomChanse = random(min: 0, max: 1)
+            if randomChanse < 0.25 {
+                var k = Int(random(min: 1, max: 3))
+                var tile = SKSpriteNode(texture:atlas!.textureNamed("2-tiles-" + String(k)))
+                tile.size = blockSize!
+                tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+                bg!.addChild(tile)
+            }
+        } else  if col != 0  && col != line.count - 1 {
+            var randomChanse = random(min: 0, max: 1)
+            if randomChanse < 0.2 {
+                var k = Int(random(min: 1, max: 3))
+                var tile = SKSpriteNode(texture:atlas!.textureNamed("1-tile-" + String(k)))
+                tile.size = blockSize!
+                tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+                bg!.addChild(tile)
             }
         }
     }
