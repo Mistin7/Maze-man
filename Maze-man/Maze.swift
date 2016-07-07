@@ -297,6 +297,7 @@ class Maze {
             var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
             tile.size = blockSize!
             tile.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+            tile.zPosition = 1
             bg!.addChild(tile)
             
             var tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
@@ -686,6 +687,7 @@ class Maze {
                     sprite.size = blockSize!
                 }
                 tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+                tile!.zPosition = 2
                 bg!.addChild(tile!)
             }
         }

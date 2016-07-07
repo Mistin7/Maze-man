@@ -10,6 +10,11 @@ import SpriteKit
 import GameKit
 
 class Competitive: SKScene {
+    //То что будет поверх всего перед началом игры
+    var upLayer = SKNode()
+    var logo = SKSpriteNode(imageNamed: "logo")
+    //Потом надо сделать, чтобы в touchBegin если у нас верхняя асть есть, то плеер не передвигался.
+    
     var maze: Maze?
     var bgBasic: SKSpriteNode?
     var oldFingerPosition: CGPoint? = nil
@@ -54,6 +59,12 @@ class Competitive: SKScene {
     }
     
     override func didMoveToView(view: SKView) {
+        //Всё что идёт поверх карты перед началом игры
+        addChild(upLayer)
+        logo.size = CGSize(width: 268, height: 38)
+        logo.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 + 250)
+        upLayer.addChild(logo)
+        
         if defaults.integerForKey("points") < 100 {
             defaults.setInteger(100, forKey: "points")
         }

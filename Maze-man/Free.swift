@@ -29,7 +29,7 @@ class Free: SKScene {
     }
     
     override func didMoveToView(view: SKView) {
-        backgroundColor = SKColor(red: 100, green: 0, blue: 0, alpha: 1.0)
+        backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         makeMaze() // Создаём и добавляем лабиринт
         addBg() //Добавляем самый базовый background
         bgBasic!.addChild(maze!.bg!) //Добавляем наэкран лабиринт, ставим тут, так как нам нужны заранее кординаты плеера
