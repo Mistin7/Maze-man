@@ -7,8 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04DB6D801D2E556A0007014C /* scenery-dust.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 04DB6D7F1D2E556A0007014C /* scenery-dust.atlas */; };
+		04DB6D821D2E59440007014C /* roads.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 04DB6D811D2E59440007014C /* roads.atlas */; };
+		04DB6D841D2E64D60007014C /* scenery-snow.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 04DB6D831D2E64D60007014C /* scenery-snow.atlas */; };
 		85015DB21C7068E300E1B067 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85015DB11C7068E300E1B067 /* GameKit.framework */; };
-		85264B5A1D2AAA79002AD642 /* scenery.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 85264B591D2AAA79002AD642 /* scenery.atlas */; };
+		85264B5A1D2AAA79002AD642 /* scenery-green.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 85264B591D2AAA79002AD642 /* scenery-green.atlas */; };
 		85A3FE901C8D75CA00AF8C03 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */; };
 		85A3FE921C8D761100AF8C03 /* CompetitiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */; };
 		85E0C70B1C6FAB0A003215B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C70A1C6FAB0A003215B1 /* AppDelegate.swift */; };
@@ -37,8 +40,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		04DB6D7F1D2E556A0007014C /* scenery-dust.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = "scenery-dust.atlas"; sourceTree = "<group>"; };
+		04DB6D811D2E59440007014C /* roads.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = roads.atlas; sourceTree = "<group>"; };
+		04DB6D831D2E64D60007014C /* scenery-snow.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = "scenery-snow.atlas"; sourceTree = "<group>"; };
 		85015DB11C7068E300E1B067 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
-		85264B591D2AAA79002AD642 /* scenery.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = scenery.atlas; sourceTree = "<group>"; };
+		85264B591D2AAA79002AD642 /* scenery-green.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = "scenery-green.atlas"; sourceTree = "<group>"; };
 		85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompetitiveViewController.swift; sourceTree = "<group>"; };
 		85E0C7071C6FAB0A003215B1 /* Maze-man.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Maze-man.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -82,7 +88,10 @@
 		850CD7311D2858E6008C2848 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				85264B591D2AAA79002AD642 /* scenery.atlas */,
+				04DB6D831D2E64D60007014C /* scenery-snow.atlas */,
+				04DB6D811D2E59440007014C /* roads.atlas */,
+				04DB6D7F1D2E556A0007014C /* scenery-dust.atlas */,
+				85264B591D2AAA79002AD642 /* scenery-green.atlas */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -227,9 +236,12 @@
 			files = (
 				85E0C70D1C6FAB0A003215B1 /* GameScene.sks in Resources */,
 				85E0C7191C6FAB0A003215B1 /* LaunchScreen.storyboard in Resources */,
+				04DB6D841D2E64D60007014C /* scenery-snow.atlas in Resources */,
+				04DB6D821D2E59440007014C /* roads.atlas in Resources */,
 				85E0C7161C6FAB0A003215B1 /* Assets.xcassets in Resources */,
+				04DB6D801D2E556A0007014C /* scenery-dust.atlas in Resources */,
 				85E0C7141C6FAB0A003215B1 /* Main.storyboard in Resources */,
-				85264B5A1D2AAA79002AD642 /* scenery.atlas in Resources */,
+				85264B5A1D2AAA79002AD642 /* scenery-green.atlas in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -290,8 +290,9 @@ class Maze {
         bg!.position = CGPoint(x: -bg!.frame.width / 2, y: bg!.frame.height / 2)
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
-        
-        let atlas: SKTextureAtlas? = SKTextureAtlas(named: "scenery")
+        var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
+        var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
+        let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         for row in 1..<maze!.count-1 {
             var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
             tile.size = blockSize!
@@ -625,7 +626,7 @@ class Maze {
     
     //Потом удалить (пробник)
     func generateShape2() {
-        let atlas: SKTextureAtlas? = SKTextureAtlas(named: "scenery")
+        let atlas: SKTextureAtlas? = SKTextureAtlas(named: "roads")
         for row in 0..<maze!.count {
             let line = maze![row]
             for (col, code) in line.enumerate() {
