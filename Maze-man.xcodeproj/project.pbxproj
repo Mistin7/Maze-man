@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		85015DB21C7068E300E1B067 /* GameKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 85015DB11C7068E300E1B067 /* GameKit.framework */; };
+		85264B5A1D2AAA79002AD642 /* scenery.atlas in Resources */ = {isa = PBXBuildFile; fileRef = 85264B591D2AAA79002AD642 /* scenery.atlas */; };
 		85A3FE901C8D75CA00AF8C03 /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */; };
 		85A3FE921C8D761100AF8C03 /* CompetitiveViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */; };
 		85E0C70B1C6FAB0A003215B1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C70A1C6FAB0A003215B1 /* AppDelegate.swift */; };
@@ -37,6 +38,7 @@
 
 /* Begin PBXFileReference section */
 		85015DB11C7068E300E1B067 /* GameKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameKit.framework; path = System/Library/Frameworks/GameKit.framework; sourceTree = SDKROOT; };
+		85264B591D2AAA79002AD642 /* scenery.atlas */ = {isa = PBXFileReference; lastKnownFileType = folder.skatlas; path = scenery.atlas; sourceTree = "<group>"; };
 		85A3FE8F1C8D75CA00AF8C03 /* SettingsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CompetitiveViewController.swift; sourceTree = "<group>"; };
 		85E0C7071C6FAB0A003215B1 /* Maze-man.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Maze-man.app"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -77,6 +79,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		850CD7311D2858E6008C2848 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				85264B591D2AAA79002AD642 /* scenery.atlas */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
 		85E0C6FE1C6FAB0A003215B1 = {
 			isa = PBXGroup;
 			children = (
@@ -110,6 +120,7 @@
 				85A3FE911C8D761100AF8C03 /* CompetitiveViewController.swift */,
 				85FDD5F41C8ED9860063624E /* FreeViewController.swift */,
 				85E0C7101C6FAB0A003215B1 /* GameViewController.swift */,
+				850CD7311D2858E6008C2848 /* Resources */,
 				85E0C7121C6FAB0A003215B1 /* Main.storyboard */,
 				85E0C7151C6FAB0A003215B1 /* Assets.xcassets */,
 				85E0C7171C6FAB0A003215B1 /* LaunchScreen.storyboard */,
@@ -218,6 +229,7 @@
 				85E0C7191C6FAB0A003215B1 /* LaunchScreen.storyboard in Resources */,
 				85E0C7161C6FAB0A003215B1 /* Assets.xcassets in Resources */,
 				85E0C7141C6FAB0A003215B1 /* Main.storyboard in Resources */,
+				85264B5A1D2AAA79002AD642 /* scenery.atlas in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

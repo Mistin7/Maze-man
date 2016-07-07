@@ -69,7 +69,8 @@ class Maze {
         
         generateMaze()
         addBg()
-        generateShape()
+        //generateShape()
+        generateShape2()
         startAndFinishBlocks()
         playerSettings()
         self.willPlayerPosition = player!.position
@@ -284,9 +285,65 @@ class Maze {
     //На чём стоит лабиринт
     func addBg() {
         bg = SKSpriteNode(color: UIColor(red: 0, green: 0, blue: 0, alpha: 1), size: CGSize(width: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!, height: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!))
+        //bg = SKSpriteNode(imageNamed: "bg-green")
+        bg!.size = CGSize(width: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!, height: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!)
         bg!.position = CGPoint(x: -bg!.frame.width / 2, y: bg!.frame.height / 2)
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
+        
+        let atlas: SKTextureAtlas? = SKTextureAtlas(named: "scenery")
+        for row in 1..<maze!.count-1 {
+            var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
+            tile.size = blockSize!
+            tile.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+            bg!.addChild(tile)
+            
+            var tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
+            tileright.size = blockSize!
+            tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+            bg!.addChild(tileright)
+        }
+        for col in 1..<maze![0].count-1 {
+            var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-mid"))
+            tile.size = blockSize!
+            tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
+            bg!.addChild(tile)
+            
+            var tilebot = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
+            tilebot.size = blockSize!
+            tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+            bg!.addChild(tilebot)
+        }
+        
+        var tiletopleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-left"))
+        tiletopleft.size = blockSize!
+        tiletopleft.position = CGPoint(x: blockSize!.width / 2, y: -blockSize!.height / 2)
+        bg!.addChild(tiletopleft)
+        
+        var tiletopright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-right"))
+        tiletopright.size = blockSize!
+        tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
+        bg!.addChild(tiletopright)
+        
+        var tilebotleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-left"))
+        tilebotleft.size = blockSize!
+        tilebotleft.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+        bg!.addChild(tilebotleft)
+        
+        var tilebotright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-right"))
+        tilebotright.size = blockSize!
+        tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+        bg!.addChild(tilebotright)
+        
+        //Заполняем всё зелёными квадратами (кроме граней)
+        for i in 1..<maze!.count-1 {
+            for j in 1..<maze![0].count-1 {
+                var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-main"))
+                tile.size = blockSize!
+                tile.position = CGPoint(x: CGFloat(j) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(i) * blockSize!.height - blockSize!.height / 2)
+                bg!.addChild(tile)
+            }
+        }
     }
     
     //Даёт плееру анимацию
@@ -565,6 +622,75 @@ class Maze {
         if (Int(sides.top) + Int(sides.right) + Int(sides.bottom) + Int(sides.left) == 3) { return true }
         else { return false }
     }
+    
+    //Потом удалить (пробник)
+    func generateShape2() {
+        let atlas: SKTextureAtlas? = SKTextureAtlas(named: "scenery")
+        for row in 0..<maze!.count {
+            let line = maze![row]
+            for (col, code) in line.enumerate() {
+                var tile: SKNode?
+                switch code {
+                case 0:
+                    //tile = SKSpriteNode(texture: atlas!.textureNamed("bgtile-main"))
+                    continue
+                case 1:
+                    //Тут перерёсток (+)
+                    if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 1 && maze![row+1][col] == 1 { //Дорога везде (перекрёсток +)
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way4"))
+                        //tile!.zRotation = Pi / 2
+                    }
+                    //Тут тройные пересечения (т)
+                    else if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 1 && maze![row+1][col] == 0 { //Дорога везде кроме низа
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way3"))
+                        tile!.zRotation = Pi
+                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога везде кроме верха
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way3"))
+                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 1 { //Дорога везде кроме лева
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way3"))
+                        tile!.zRotation = Pi / 2
+                    } else if maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 1 && maze![row+1][col] == 1 { //Дорога везде кроме права
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way3"))
+                        tile!.zRotation = Pi * 1.5
+                    }
+                    //Тут угловые (г)
+                    else if maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога слева и снизу
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way2"))
+                        tile!.zRotation = Pi * 1.5
+                    } else if maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 1 && maze![row+1][col] == 0 { //Дорога слева и сверху
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way2"))
+                        tile!.zRotation = Pi
+                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 0 { //Дорога сверху и справа
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way2"))
+                        tile!.zRotation = Pi / 2
+                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога снизу и справа
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way2"))
+                    }
+                    //Тут обычные прямые (-)
+                    else if maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 1 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога вертикальная
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way1"))
+                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 { //Дорога горизонтальная
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way1"))
+                        tile!.zRotation = Pi / 2
+                    }
+                    else {
+                        tile = SKSpriteNode(texture:atlas!.textureNamed("way1"))
+                    }
+                default:
+                    print("Unknown tile code \(code)")
+                }
+                // 3
+                if let sprite = tile as? SKSpriteNode {
+                    //sprite.blendMode = .Replace
+                    sprite.size = blockSize!
+                }
+                tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+                bg!.addChild(tile!)
+            }
+        }
+    }
+    
+    
     
     //Обводим контур лабиринта
     func generateShape() {
@@ -989,3 +1115,75 @@ class Maze {
         playTimer = true
     }
 }
+
+
+
+
+
+/*
+func createScenery() -> TileMapLayer {
+    return TileMapLayer(atlasName: "scenery", tileSize: CGSize(width: 32, height: 32), tileCodes: ["xxxxxxxxxxxxxxxxxx", "xoooooooooooooooox", "xoooooooooooooooox", "xoooooooooooooooox", "xoooooooooooooooox", "xoooooooooxoooooox", "xoooooooooxoooooox", "xoooooxxxxxoooooox", "xoooooxoooooooooox", "xxxxxxxxxxxxxxxxxx"])
+}
+
+
+//Описание для Tile (плитки)
+
+class TileMapLayer : SKNode {
+    let tileSize: CGSize
+    var atlas: SKTextureAtlas?
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("NSCoding not supported")
+    }
+    init(tileSize: CGSize) {
+        self.tileSize = tileSize
+        super.init()
+    }
+    
+    convenience init(atlasName: String, tileSize: CGSize, tileCodes: [String]) {
+        self.init(tileSize: tileSize)
+        atlas = SKTextureAtlas(named: atlasName)
+        for row in 0..<tileCodes.count {
+            let line = tileCodes[row]
+            for (col, code) in enum(line) {
+                if let tile = nodeForCode(code)? {
+                    // add tiles here
+                    tile.position = positionForRow(row, col: col)
+                    addChild(tile)
+                }
+            }
+        }
+    }
+    
+    
+    func nodeForCode(tileCode: Character) -> SKNode? { // 1
+        if atlas == nil {
+            return nil
+        }
+        // 2
+        var tile: SKNode?
+        switch tileCode {
+        case "0":
+            tile = SKSpriteNode(texture: atlas!.textureNamed("bgtile-main"))
+        case "1":
+            tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
+        default:
+            print("Unknown tile code \(tileCode)")
+        }
+        // 3
+        if let sprite = tile as? SKSpriteNode {
+            sprite.blendMode = .Replace
+        }
+        return tile
+    }
+    
+    
+    func positionForRow(row: Int, col: Int) -> CGPoint {
+        let x = CGFloat(col) * tileSize.width + tileSize.width / 2
+        let y = CGFloat(row) * tileSize.height + tileSize.height / 2
+        return CGPoint(x: x, y: y)
+    }
+}*/
+
+
+
+
