@@ -634,13 +634,16 @@ class Maze {
     //Потом удалить (пробник)
     func generateShape2() {
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: "roads")
+        var a = 2// колличество декораций, занимающих 1 ячейку
+        var a2 = 2// колличество декораций, занимающих 2 ячейки
         for row in 1..<maze!.count-1 {
             let line = maze![row]
             for (col, code) in line.enumerate() {
                 var tile: SKNode?
                 switch code {
                 case 0:
-                    addDecor(row, col: col)
+                    addDecor(row, col: col,k: row%a + 1, k2: col%a2 + 1)
+                    
                     //tile = SKSpriteNode(texture: atlas!.textureNamed("bgtile-main"))
                     continue
                 case 1:
@@ -701,23 +704,21 @@ class Maze {
     }
     
     //функция, которая расставляет декорации
-    func addDecor(row: Int, col: Int){
-        let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
+    func addDecor(row: Int, col: Int, k: Int,k2: Int){
+         let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         let line = maze![row]
         if (maze![row+1][col] == 0 || maze![row-1][col] == 0) && col != 0  && col != (line.count - 1) {
-            var randomChanse = random(min: 0, max: 1)
-            if randomChanse < 0.25 {
-                var k = Int(random(min: 1, max: 3))
-                var tile = SKSpriteNode(texture:atlas!.textureNamed("2-tiles-" + String(k)))
+            let randomChanse = random(min: 0, max: 1)
+            if randomChanse < 0.2 {
+                let tile = SKSpriteNode(texture:atlas!.textureNamed("2-tiles-" + String(k)))
                 tile.size = blockSize!
                 tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
                 bg!.addChild(tile)
             }
         } else  if col != 0  && col != line.count - 1 {
-            var randomChanse = random(min: 0, max: 1)
-            if randomChanse < 0.2 {
-                var k = Int(random(min: 1, max: 3))
-                var tile = SKSpriteNode(texture:atlas!.textureNamed("1-tile-" + String(k)))
+            let randomChanse = random(min: 0, max: 1)
+            if randomChanse < 0.1 {
+                let tile = SKSpriteNode(texture:atlas!.textureNamed("1-tile-" + String(k2)))
                 tile.size = blockSize!
                 tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
                 bg!.addChild(tile)
