@@ -8,8 +8,6 @@
 
 import SpriteKit
 
-//Что бы не лагало, когда большой лабиринт, надо разбить картинку с лабиринтом на много частей (20x20 например) и тупо скулеить их (рядом поставить).
-
 class Free: SKScene {
     var maze: Maze?
     var bgBasic: SKSpriteNode?
@@ -32,7 +30,7 @@ class Free: SKScene {
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         makeMaze() // Создаём и добавляем лабиринт
         addBg() //Добавляем самый базовый background
-        bgBasic!.addChild(maze!.bg!) //Добавляем наэкран лабиринт, ставим тут, так как нам нужны заранее кординаты плеера
+        bgBasic!.addChild(maze!.bg!) //Добавляем на экран лабиринт, ставим тут, так как нам нужны заранее кординаты плеера
     }
     
     override func update(currentTime: NSTimeInterval) {
@@ -73,7 +71,7 @@ class Free: SKScene {
         if !stopPlaying {
             if maze!.moveResolution == false {
                 switch maze!.movePlayerDirection {
-                case 0:
+                case 0: // Вверх
                     if maze!.player!.position.y >= maze!.willPlayerPosition.y {
                         //maze!.player!.position.y = maze!.willPlayerPosition.y
                         maze!.player!.position.y = -CGFloat(maze!.playerPosition.i) * maze!.blockSize!.height - maze!.player!.frame.height / 2
@@ -87,7 +85,10 @@ class Free: SKScene {
                         }
                     }
                     //bgBasic!.position.y -= maze!.playerSpeed! * CGFloat(dt) * maze!.kSpeed
-                    bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height - size.height / 2 { //Когда ы у краёв лабиринта, чтобы лабиринт не отходил от краёв экрана
+                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                        bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
+                    }
                 case 1:
                     if maze!.player!.position.x >= maze!.willPlayerPosition.x {
                         //maze!.player!.position.x = maze!.willPlayerPosition.x
@@ -102,7 +103,10 @@ class Free: SKScene {
                         }
                     }
                     //bgBasic!.position.x -= maze!.playerSpeed! * CGFloat(dt) * maze!.kSpeed
-                    bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                    if maze!.player!.position.x > size.width / 2 && maze!.player!.position.x < maze!.bg!.frame.width - size.width / 2 {
+                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                        bgBasic!.position.x = -maze!.player!.position.x + size.width / 2
+                    }
                 case 2:
                     if maze!.player!.position.y <= maze!.willPlayerPosition.y {
                         //maze!.player!.position.y = maze!.willPlayerPosition.y
@@ -116,7 +120,10 @@ class Free: SKScene {
                             maze!.willPlayerDirection = nil
                         }
                     }
-                    bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height - size.height / 2 {
+                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                        bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
+                    }
                 case 3:
                     if maze!.player!.position.x <= maze!.willPlayerPosition.x {
                         //maze!.player!.position.x = maze!.willPlayerPosition.x
@@ -130,10 +137,14 @@ class Free: SKScene {
                             maze!.willPlayerDirection = nil
                         }
                     }
-                    bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                    if maze!.player!.position.x > size.width / 2 && maze!.player!.position.x < maze!.bg!.frame.width - size.width / 2 {
+                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+                        bgBasic!.position.x = -maze!.player!.position.x + size.width / 2
+                    }
                 default: break
                 }
             }
+            print("ЙЦУ ", maze!.player!.position)
         }
     }
     
@@ -201,9 +212,12 @@ class Free: SKScene {
     }
     
     func addBg() {
-        bgBasic = SKSpriteNode(color: UIColor(red: 0, green: 0, blue: 0, alpha: 1), size: CGSize(width: CGFloat(31 * 30), height: CGFloat(31 * 30)))
-        bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
-        bgBasic!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        bgBasic = SKSpriteNode(color: UIColor(red: 25, green: 0, blue: 0, alpha: 1), size: CGSize(width: CGFloat(31 * 30), height: CGFloat(31 * 30)))
+        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
+        //bgBasic!.position = CGPoint(x: maze!.bg!.size.width / 2, y: size.height - maze!.bg!.size.height / 2)
+        bgBasic!.position = CGPoint(x: 0, y: size.height)
+        //bgBasic!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        bgBasic!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         addChild(bgBasic!)
     }
 }

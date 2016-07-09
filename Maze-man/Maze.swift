@@ -45,6 +45,7 @@ class Maze {
     var playTimer = true //Если false, то таймер на паузе
     var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
     var coins: [(coin: SKSpriteNode, i: Int, j: Int)] = [] //Используем только при построении, при игре - нет
+    var competitiveMod: Bool //Если режим лабиринта соревновательный, то true, если свободный - false
     
     
     var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"] // добавляем различные скины для сцен
@@ -56,6 +57,7 @@ class Maze {
         self.startBlockPosition = (i: startBlockI, j: startBlockJ)
         self.finishBlockPosition = (i: finishBlockI, j: finishBlockJ)
         self.actualPoint = self.startBlockPosition
+        self.competitiveMod = competitiveMod
         randomScenery = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         if mazeSize == nil {
             self.mazeSize = CGSize(width: blockCount * 30, height: blockCount * 30)
@@ -293,7 +295,8 @@ class Maze {
         bg = SKSpriteNode(color: UIColor(red: 0, green: 0, blue: 0, alpha: 1), size: CGSize(width: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!, height: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!))
         //bg = SKSpriteNode(imageNamed: "bg-green")
         bg!.size = CGSize(width: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!, height: Int(Int(self.mazeSize.width) / blockCount!) * blockCount!)
-        bg!.position = CGPoint(x: -bg!.frame.width / 2, y: bg!.frame.height / 2)
+        if competitiveMod { bg!.position = CGPoint(x: -bg!.frame.width / 2, y: bg!.frame.height / 2) } //Если соревновательный режим, то лабиринт по середине
+        else { bg!.position = CGPoint(x: 0, y: 0) } //Если свободный, то начиная с левого верхнево угла
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
         //var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
