@@ -85,7 +85,7 @@ class Free: SKScene {
                         }
                     }
                     //bgBasic!.position.y -= maze!.playerSpeed! * CGFloat(dt) * maze!.kSpeed
-                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height - size.height / 2 { //Когда ы у краёв лабиринта, чтобы лабиринт не отходил от краёв экрана
+                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height + size.height / 2 - 10 { //Когда ы у краёв лабиринта, чтобы лабиринт не отходил от краёв экрана (-10 чтобы внизу земля была видна)
                         //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
                     }
@@ -120,7 +120,7 @@ class Free: SKScene {
                             maze!.willPlayerDirection = nil
                         }
                     }
-                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height - size.height / 2 {
+                    if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height + size.height / 2 - 10{
                         //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
                     }
@@ -144,7 +144,6 @@ class Free: SKScene {
                 default: break
                 }
             }
-            print("ЙЦУ ", maze!.player!.position)
         }
     }
     

@@ -21,8 +21,8 @@ class CompetitiveViewController: UIViewController {
         var size = skView.bounds.size
         size.width *= 2
         size.height *= 2
-        let scene = GameScene(size: size)
-        //let scene = Competitive(size: size)
+        //let scene = GameScene(size: size)
+        let scene = Competitive(size: size)
         skView.showsFPS = true
         skView.showsNodeCount = true
         skView.ignoresSiblingOrder = true

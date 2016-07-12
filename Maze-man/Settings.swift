@@ -10,7 +10,7 @@ import SpriteKit
 
 class Settings: SKScene {
     var soundButton = SKSpriteNode(imageNamed: "soundOn")
-    var backButton = SKSpriteNode(imageNamed: "backButton")
+    //var backButton = SKSpriteNode(imageNamed: "backButton")
     let defaults = NSUserDefaults.standardUserDefaults()
     override func didMoveToView(view: SKView) {
         print("settings scene")
@@ -23,10 +23,10 @@ class Settings: SKScene {
         addChild(soundButton)
         
         //Кнопка в главное меню
-        backButton.size = CGSize(width: 50, height: 50)
+        //backButton.size = CGSize(width: 50, height: 50)
         //backButton.position = CGPoint(x: 70 + size.width, y: size.height - 70)
-        backButton.position = CGPoint(x: 70, y: size.height - 70)
-        addChild(backButton)
+        //backButton.position = CGPoint(x: 70, y: size.height - 70)
+        //addChild(backButton)
         print(size)
     }
     override init(size: CGSize) {
@@ -48,10 +48,10 @@ class Settings: SKScene {
                     soundButton.texture = SKTexture(imageNamed: "soundOff")
                     defaults.setBool(true, forKey: "sound")
                 }
-            case backButton:
+            /*case backButton:
                 let gameScene = GameScene(size: size)
                 gameScene.scaleMode = scaleMode
-                self.view!.presentScene(gameScene)
+                self.view!.presentScene(gameScene)*/
             default: break
             }
         }

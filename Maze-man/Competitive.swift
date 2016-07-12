@@ -11,8 +11,10 @@ import GameKit
 
 class Competitive: SKScene {
     //То что будет поверх всего перед началом игры
-    var upLayer = SKNode()
+    var upperLayer = SKSpriteNode()
     var logo = SKSpriteNode(imageNamed: "logo")
+    var playButton = SKSpriteNode(imageNamed: "playButton")
+    var leadersButton = SKSpriteNode(imageNamed: "leadersButton")
     //Потом надо сделать, чтобы в touchBegin если у нас верхняя асть есть, то плеер не передвигался.
     
     var maze: Maze?
@@ -20,10 +22,10 @@ class Competitive: SKScene {
     var oldFingerPosition: CGPoint? = nil
     var resolution: Bool = false
     var restart  = SKSpriteNode(imageNamed: "restart")
-    var backButton = SKSpriteNode(imageNamed: "backButton")
+    //var backButton = SKSpriteNode(imageNamed: "backButton")
     var lastUpdateTime: NSTimeInterval = 0.0
     var dt = 0.0
-    var stopPlaying = false
+    var stopPlaying = true
     
     //Секундомер
     var count: Double = 0.0
@@ -60,16 +62,32 @@ class Competitive: SKScene {
     
     override func didMoveToView(view: SKView) {
         //Всё что идёт поверх карты перед началом игры
-        addChild(upLayer)
+        upperLayer = SKSpriteNode(color: UIColor.blackColor().colorWithAlphaComponent(0.0), size: self.size)
+        upperLayer.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        upperLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        upperLayer.zPosition = 99
+        addChild(upperLayer)
+        //upperLayer.hidden = true
+        
         logo.size = CGSize(width: 268, height: 38)
-        logo.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 + 250)
-        upLayer.addChild(logo)
+        logo.position = CGPoint(x: 0, y: 250)
+        logo.zPosition = 99
+        upperLayer.addChild(logo)
+        
+        playButton.size = CGSize(width: 250, height: 110)
+        playButton.position = CGPoint(x: 0, y: -150)
+        upperLayer.addChild(playButton)
+        
+        leadersButton.size = CGSize(width: 100, height: 100)
+        leadersButton.position = CGPoint(x: 75, y: -295)
+        upperLayer.addChild(leadersButton)
+        
         
         if defaults.integerForKey("points") < 100 {
             defaults.setInteger(100, forKey: "points")
         }
         
-        NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
+        //NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
         
         //backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
@@ -82,9 +100,9 @@ class Competitive: SKScene {
         restart.position = CGPoint(x: size.width - 80, y: size.height - 60)
         addChild(restart)
         //Кнопка в главное меню
-        backButton.size = CGSize(width: 50, height: 50)
-        backButton.position = CGPoint(x: 70, y: size.height - 70)
-        addChild(backButton)
+        //backButton.size = CGSize(width: 50, height: 50)
+        //backButton.position = CGPoint(x: 70, y: size.height - 70)
+        //addChild(backButton)
         //Добавляем кол-во  монеток на экран
         addCoinsInfo()
         
@@ -143,7 +161,7 @@ class Competitive: SKScene {
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        print(maze!.playerPosition)
+                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -156,7 +174,7 @@ class Competitive: SKScene {
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        print(maze!.playerPosition)
+                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -169,7 +187,7 @@ class Competitive: SKScene {
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        print(maze!.playerPosition)
+                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -182,7 +200,7 @@ class Competitive: SKScene {
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        print(maze!.playerPosition)
+                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -202,17 +220,24 @@ class Competitive: SKScene {
         for touch: AnyObject in touches {
             let location = touch.locationInNode(self)
             switch nodeAtPoint(location) {
+            case playButton:
+                NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
+                upperLayer.runAction(SKAction.sequence([SKAction.moveBy(CGVectorMake(0, -self.size.height), duration: 0.6), SKAction.runBlock({
+                    self.upperLayer.hidden = true
+                    self.stopPlaying = false
+                })]))
             case restart:
                 maze!.bg!.removeFromParent()
                 timer.invalidate()
                 makeMaze()
-            case backButton:
+                /*case backButton:
                 let gameScene = GameScene(size: size)
                 gameScene.scaleMode = scaleMode
-                self.view!.presentScene(gameScene)
+                self.view!.presentScene(gameScene)*/
             case continueButton:
                 maze!.bg!.removeFromParent()
                 stopPlaying = false
+                NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
                 resultBg!.hidden = true
                 makeMaze()
             default:
@@ -292,6 +317,7 @@ class Competitive: SKScene {
     }
     
     func showResultBg(win: Bool) {
+        NSNotificationCenter.defaultCenter().postNotificationName("game mode Off", object: self)
         stopPlaying = true
         resultBg!.hidden = false
         lvlLineMask.position.x = -lvlLine!.size.width * 1.5 + CGFloat(defaults.integerForKey("points")) % 100 / 100 * lvlLine!.size.width //Как выглядит полоса до прибавки процентов
@@ -467,11 +493,13 @@ class Competitive: SKScene {
         addChild(bestTimeLabel)
     }
     func counter() {
-        //Если не действует заморозка, то
-        if maze!.playTimer {
-            count += 0.1
-            count = round(10 * count) / 10//Округляем до десятых
-            timeLabel.text = "Time: \(count)"
+        if stopPlaying == false {
+            //Если не действует заморозка, то
+            if maze!.playTimer {
+                count += 0.1
+                count = round(10 * count) / 10//Округляем до десятых
+                timeLabel.text = "Time: \(count)"
+            }
         }
     }
     
