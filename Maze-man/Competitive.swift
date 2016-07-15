@@ -15,7 +15,7 @@ class Competitive: SKScene {
     var logo = SKSpriteNode(imageNamed: "logo")
     var playButton = SKSpriteNode(imageNamed: "playButton")
     var leadersButton = SKSpriteNode(imageNamed: "leadersButton")
-    //Потом надо сделать, чтобы в touchBegin если у нас верхняя асть есть, то плеер не передвигался.
+    //Потом надо сделать, чтобы в touchBegin если у нас верхняя часть есть, то плеер не передвигался.
     
     var maze: Maze?
     var bgBasic: SKSpriteNode?
@@ -382,14 +382,15 @@ class Competitive: SKScene {
         case 2...3:  maze = Maze(blockCount: 11, mazeSize: CGSize(width: size.width * 0.67, height: size.height * 0.67), finishBlockI: 9, finishBlockJ: 9)
         case 4...5: maze = Maze(blockCount: 11, mazeSize: CGSize(width: size.width * 0.67, height: size.height * 0.67), finishBlockI: 9, finishBlockJ: 9, timer: 1)
         case 6...8: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1)
-        case 9...11: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1, speedRoads: true)
+        /*case 9...11: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1, speedRoads: true)
         case 12...14: maze = Maze(blockCount: 15, mazeSize: CGSize(width: size.width * 0.8, height: size.height * 0.8), finishBlockI: 13, finishBlockJ: 13, timer: 1, speedRoads: true)
         case 15...17: maze = Maze(blockCount: 17, mazeSize: CGSize(width: size.width * 0.9, height: size.height * 0.9), finishBlockI: 15, finishBlockJ: 15, timer: 1, speedRoads: true)
         case 18...19: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true)
         case 20...24: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 1, speedRoads: true)
         case 25...27: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true)
         case 28...33: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1)
-        case 34...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)
+        case 34...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)*/
+        case 9...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)
         default: break
         }
         //maze = Maze(blockCount: 19, mazeSize: size, finishBlockI: 17, finishBlockJ: 17)

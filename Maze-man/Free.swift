@@ -11,13 +11,20 @@ import SpriteKit
 class Free: SKScene {
     var maze: Maze?
     var bgBasic: SKSpriteNode?
+    var pause  = SKSpriteNode(imageNamed: "backButton") //Поменять на картинку паузы
     
     var oldFingerPosition: CGPoint? = nil
     var resolution: Bool = false
     
     var lastUpdateTime: NSTimeInterval = 0.0
     var dt = 0.0
-    var stopPlaying = false
+    var stopPlaying = true
+    
+    //То что будет поверх всего перед началом игры
+    var upperLayer = SKSpriteNode()
+    var logo = SKSpriteNode(imageNamed: "logo")
+    var nameMode = SKLabelNode(text: "Free mode")
+    var playButton = SKSpriteNode(imageNamed: "playButton")
     
     override init(size: CGSize) {
         super.init(size: size)
@@ -31,6 +38,35 @@ class Free: SKScene {
         makeMaze() // Создаём и добавляем лабиринт
         addBg() //Добавляем самый базовый background
         bgBasic!.addChild(maze!.bg!) //Добавляем на экран лабиринт, ставим тут, так как нам нужны заранее кординаты плеера
+        
+        //Всё что идёт поверх карты перед началом игры
+        upperLayer = SKSpriteNode(color: UIColor.blackColor().colorWithAlphaComponent(0.0), size: self.size)
+        upperLayer.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        upperLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        upperLayer.zPosition = 99
+        addChild(upperLayer)
+        
+        logo.size = CGSize(width: 268, height: 38)
+        logo.position = CGPoint(x: 0, y: 250)
+        logo.zPosition = 99
+        upperLayer.addChild(logo)
+        
+        nameMode.fontColor = UIColor.whiteColor()
+        nameMode.fontSize = 44
+        nameMode.fontName = "Tahoma"
+        nameMode.position = CGPoint(x: 0, y: 170)
+        upperLayer.addChild(nameMode)
+        
+        
+        playButton.size = CGSize(width: 250, height: 110)
+        playButton.position = CGPoint(x: 0, y: -150)
+        upperLayer.addChild(playButton)
+        
+        
+        pause.size = CGSize(width: 40, height: 40)
+        pause.position = CGPoint(x: size.width - 80, y: size.height - 60)
+        pause.zPosition = 99
+        addChild(pause)
     }
     
     override func update(currentTime: NSTimeInterval) {
@@ -151,6 +187,20 @@ class Free: SKScene {
         for touch: AnyObject in touches {
             let location = touch.locationInNode(self)
             switch nodeAtPoint(location) {
+            case playButton:
+                NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
+                upperLayer.runAction(SKAction.sequence([SKAction.moveBy(CGVectorMake(0, -self.size.height), duration: 0.6), SKAction.runBlock({
+                    self.upperLayer.hidden = true
+                    self.stopPlaying = false
+                })]))
+            case pause:
+                if stopPlaying {
+                    stopPlaying = false
+                    NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
+                } else {
+                    stopPlaying = true
+                    NSNotificationCenter.defaultCenter().postNotificationName("game mode Off", object: self)
+                }
             default:
                 oldFingerPosition = location
                 resolution = true
