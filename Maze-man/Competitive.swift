@@ -9,13 +9,13 @@
 import SpriteKit
 import GameKit
 
-class Competitive: SKScene {
+class Competitive: SKScene, GKGameCenterControllerDelegate {
     //То что будет поверх всего перед началом игры
-    var upperLayer = SKSpriteNode()
+    //var upperLayer = SKSpriteNode()
+    var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
     var playButton = SKSpriteNode(imageNamed: "playButton")
     var leadersButton = SKSpriteNode(imageNamed: "leadersButton")
-    //Потом надо сделать, чтобы в touchBegin если у нас верхняя часть есть, то плеер не передвигался.
     
     var maze: Maze?
     var bgBasic: SKSpriteNode?
@@ -23,16 +23,16 @@ class Competitive: SKScene {
     var resolution: Bool = false
     var restart  = SKSpriteNode(imageNamed: "restart")
     //var backButton = SKSpriteNode(imageNamed: "backButton")
-    var lastUpdateTime: NSTimeInterval = 0.0
+    var lastUpdateTime: TimeInterval = 0.0
     var dt = 0.0
     var stopPlaying = true
     
     //Секундомер
     var count: Double = 0.0
-    var timer = NSTimer()
+    var timer = Timer()
     var timeLabel = SKLabelNode()
     var bestTimeLabel = SKLabelNode()
-    let defaults = NSUserDefaults.standardUserDefaults()
+    let defaults = UserDefaults.standard
     var results: Double = 0
     
     var coinsCountLabel = SKLabelNode()  //Текст с количеством монет
@@ -60,31 +60,35 @@ class Competitive: SKScene {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func didMoveToView(view: SKView) {
+    override func didMove(to view: SKView) {
         //Всё что идёт поверх карты перед началом игры
-        upperLayer = SKSpriteNode(color: UIColor.blackColor().colorWithAlphaComponent(0.0), size: self.size)
-        upperLayer.position = CGPoint(x: size.width / 2, y: size.height / 2)
-        upperLayer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        upperLayer.zPosition = 99
-        addChild(upperLayer)
+        var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
+        //upperLayer = SKSpriteNode(color: UIColor.black().withAlphaComponent(0.0), size: self.size)
+        upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
+        upperLayer!.position = CGPoint(x: size.width / 2, y: size.height / 2)
+        upperLayer!.lineWidth = 0.0
+        upperLayer!.fillColor = UIColor.white
+        //upperLayer!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        upperLayer!.zPosition = 99
+        addChild(upperLayer!)
         //upperLayer.hidden = true
         
         logo.size = CGSize(width: 268, height: 38)
         logo.position = CGPoint(x: 0, y: 250)
         logo.zPosition = 99
-        upperLayer.addChild(logo)
+        upperLayer!.addChild(logo)
         
         playButton.size = CGSize(width: 250, height: 110)
         playButton.position = CGPoint(x: 0, y: -150)
-        upperLayer.addChild(playButton)
+        upperLayer!.addChild(playButton)
         
         leadersButton.size = CGSize(width: 100, height: 100)
         leadersButton.position = CGPoint(x: 75, y: -295)
-        upperLayer.addChild(leadersButton)
+        upperLayer!.addChild(leadersButton)
         
         
-        if defaults.integerForKey("points") < 100 {
-            defaults.setInteger(100, forKey: "points")
+        if defaults.integer(forKey: "points") < 100 {
+            defaults.set(100, forKey: "points")
         }
         
         //NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
@@ -109,7 +113,7 @@ class Competitive: SKScene {
         //GameViewController.data.scrollView.scrollEnabled = false
     }
     
-    override func update(currentTime: NSTimeInterval) {
+    override func update(_ currentTime: TimeInterval) {
         if !stopPlaying {
             if lastUpdateTime > 0 { dt = currentTime - lastUpdateTime } else {dt = 0 }
             lastUpdateTime = currentTime
@@ -131,23 +135,19 @@ class Competitive: SKScene {
                 }
             }
             
-            //Если столкнулись со смотрителем, то мы проиграли
-            /*if maze!.checkCollisions() {
-                weLosed()
-            }*/
             //Проверяем на столкновение (смотрели, монетки)
             switch maze!.checkCollisions() {
             case 0: break
             case 1: weLosed(); break
             case 2:
-                defaults.setInteger(defaults.integerForKey("coins") + 1, forKey: "coins")
-                coinsCountLabel.text = "\(defaults.integerForKey("coins")) coins"
+                defaults.set(defaults.integer(forKey: "coins") + 1, forKey: "coins")
+                coinsCountLabel.text = "\(defaults.integer(forKey: "coins")) coins"
                 break
             default: break
             }
             
         } else {
-            print(lvlLineMask.position)
+            //print(lvlLineMask.position)
         }
     }
     override func didFinishUpdate() {
@@ -211,19 +211,21 @@ class Competitive: SKScene {
             }
             //Как только наступили на финиш
             if maze!.maze![maze!.playerPosition.i][maze!.playerPosition.j] == 19 {
-                weOnFinish()
+                if maze!.player!.position == maze!.finishBlock!.position {
+                    weOnFinish()
+                }
             }
         }
     }
     
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
-            let location = touch.locationInNode(self)
-            switch nodeAtPoint(location) {
+            let location = touch.location(in: self)
+            switch atPoint(location) {
             case playButton:
-                NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
-                upperLayer.runAction(SKAction.sequence([SKAction.moveBy(CGVectorMake(0, -self.size.height), duration: 0.6), SKAction.runBlock({
-                    self.upperLayer.hidden = true
+                NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
+                upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -self.size.height), duration: 0.6), SKAction.run({
+                    self.upperLayer!.isHidden = true
                     self.stopPlaying = false
                 })]))
             case restart:
@@ -237,9 +239,11 @@ class Competitive: SKScene {
             case continueButton:
                 maze!.bg!.removeFromParent()
                 stopPlaying = false
-                NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
-                resultBg!.hidden = true
+                NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
+                resultBg!.isHidden = true
                 makeMaze()
+            case leadersButton:
+                showLeader()
             default:
                 oldFingerPosition = location
                 resolution = true
@@ -247,9 +251,9 @@ class Competitive: SKScene {
         }
     }
     
-    override func touchesMoved(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
-            let location = touch.locationInNode(self)
+            let location = touch.location(in: self)
             var dtLine: CGPoint? = nil
             if resolution == true {
                 if oldFingerPosition != nil {
@@ -296,17 +300,17 @@ class Competitive: SKScene {
     func weOnFinish() {
         print("You won")
         timer.invalidate()
-        if count < defaults.doubleForKey("bestTime") || defaults.doubleForKey("bestTime") == 0.0 {
-            defaults.setDouble(count, forKey: "bestTime")
-            results = defaults.doubleForKey("bestTime")
+        if count < defaults.double(forKey: "bestTime") || defaults.double(forKey: "bestTime") == 0.0 {
+            defaults.set(count, forKey: "bestTime")
+            results = defaults.double(forKey: "bestTime")
             bestTimeLabel.text = "Best time: \(results)"
         }
         
-        countLvlUp = (defaults.integerForKey("points") % 100 + Int(350/count)) / 100
+        countLvlUp = (defaults.integer(forKey: "points") % 100 + Int(350/count)) / 100
         //runAction(SKAction.sequence([SKAction.waitForDuration(1), SKAction.runBlock(showResultBg)]))
         showResultBg(true)
         
-        saveHighscore(defaults.integerForKey("points") / 100)
+        saveHighscore(defaults.integer(forKey: "points") / 100)
     }
     
     func weLosed() {
@@ -316,13 +320,13 @@ class Competitive: SKScene {
         showResultBg(false)
     }
     
-    func showResultBg(win: Bool) {
-        NSNotificationCenter.defaultCenter().postNotificationName("game mode Off", object: self)
+    func showResultBg(_ win: Bool) {
+        NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
         stopPlaying = true
-        resultBg!.hidden = false
-        lvlLineMask.position.x = -lvlLine!.size.width * 1.5 + CGFloat(defaults.integerForKey("points")) % 100 / 100 * lvlLine!.size.width //Как выглядит полоса до прибавки процентов
-        currentLvl.text = "\(Int(defaults.integerForKey("points") / 100)) lvl"
-        nextLvl.text = "\(Int(defaults.integerForKey("points") / 100) + 1) lvl"
+        resultBg!.isHidden = false
+        lvlLineMask.position.x = -lvlLine!.size.width * 1.5 + CGFloat(defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * lvlLine!.size.width //Как выглядит полоса до прибавки процентов
+        currentLvl.text = "\(Int(defaults.integer(forKey: "points") / 100)) lvl"
+        nextLvl.text = "\(Int(defaults.integer(forKey: "points") / 100) + 1) lvl"
         
         if win {
             dtWithLvlLine = 3.5 / CGFloat(count) * lvlLine!.size.width
@@ -333,64 +337,64 @@ class Competitive: SKScene {
         }
         timeOfLvlLineEvolution = 2.0
         
-        let dtWithLvlLine2 = dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
+        let dtWithLvlLine2 = dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * self.lvlLine!.size.width
         //var dtPoints: CGFloat = CGFloat(3.5/count) //Сколько плеер поднял процентов/100 за раунд
         //Тут остановился
         if countLvlUp == 0 {
-            lvlLineMask.runAction(SKAction.moveByX(dtWithLvlLine!, y: 0, duration: 1))
+            lvlLineMask.run(SKAction.moveBy(x: dtWithLvlLine!, y: 0, duration: 1))
         } else if countLvlUp == 1 {
-            lvlLineMask.runAction(SKAction.sequence([
-                SKAction.waitForDuration(1),
-                SKAction.moveByX(lvlLine!.size.width - CGFloat(defaults.integerForKey("points")) % 100 / 100 * lvlLine!.size.width, y: 0, duration: 2),
-                SKAction.runBlock({
+            lvlLineMask.run(SKAction.sequence([
+                SKAction.wait(forDuration: 1),
+                SKAction.moveBy(x: lvlLine!.size.width - CGFloat(defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * lvlLine!.size.width, y: 0, duration: 2),
+                SKAction.run({
                     self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
-                    print(self.dtWithLvlLine!)
+                    //print(self.dtWithLvlLine!)
                     //self.dtWithLvlLine! = self.dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
                     print("lvlUp")
                     //print(self.dtWithLvlLine!)
                 }),
-                SKAction.waitForDuration(1),
+                SKAction.wait(forDuration: 1),
                 //SKAction.moveByX(self.dtWithLvlLine!, y: 0, duration: 2)
-                SKAction.moveByX(dtWithLvlLine2, y: 0, duration: 2)
+                SKAction.moveBy(x: dtWithLvlLine2, y: 0, duration: 2)
                 ]))
         } else if countLvlUp > 1 {
-            lvlLineMask.runAction(SKAction.sequence([
-                SKAction.waitForDuration(1),
-                SKAction.moveByX(lvlLine!.size.width - CGFloat(defaults.integerForKey("points")) % 100 / 100 * lvlLine!.size.width, y: 0, duration: 2),
-                SKAction.runBlock({
+            lvlLineMask.run(SKAction.sequence([
+                SKAction.wait(forDuration: 1),
+                SKAction.moveBy(x: lvlLine!.size.width - CGFloat(defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * lvlLine!.size.width, y: 0, duration: 2),
+                SKAction.run({
                     self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
-                    self.dtWithLvlLine! -= self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
+                    self.dtWithLvlLine! -= self.lvlLine!.size.width + CGFloat(self.defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * self.lvlLine!.size.width
                 }),
-                SKAction.repeatAction(SKAction.sequence([
-                    SKAction.moveByX(lvlLine!.size.width, y: 0, duration: 2),
-                    SKAction.runBlock({
+                SKAction.repeat(SKAction.sequence([
+                    SKAction.moveBy(x: lvlLine!.size.width, y: 0, duration: 2),
+                    SKAction.run({
                         self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
                         self.dtWithLvlLine! -= self.lvlLine!.size.width
                     })
                     ]), count: countLvlUp - 2),
-                SKAction.waitForDuration(2),
-                SKAction.moveByX(self.dtWithLvlLine!, y: 0, duration: 2)
+                SKAction.wait(forDuration: 2),
+                SKAction.moveBy(x: self.dtWithLvlLine!, y: 0, duration: 2)
                 ]))
         }
         
-        defaults.setInteger(defaults.integerForKey("points") + (Int(350/count)), forKey: "points")
+        defaults.set(defaults.integer(forKey: "points") + (Int(350/count)), forKey: "points")
     }
     
     func makeMaze() {
-        switch Int(defaults.integerForKey("points") / 100) {
+        switch Int(defaults.integer(forKey: "points") / 100) {
         case 1: maze = Maze(blockCount: 9, mazeSize: CGSize(width: size.width * 0.6, height: size.height * 0.6), finishBlockI: 7, finishBlockJ: 7)
         case 2...3:  maze = Maze(blockCount: 11, mazeSize: CGSize(width: size.width * 0.67, height: size.height * 0.67), finishBlockI: 9, finishBlockJ: 9)
         case 4...5: maze = Maze(blockCount: 11, mazeSize: CGSize(width: size.width * 0.67, height: size.height * 0.67), finishBlockI: 9, finishBlockJ: 9, timer: 1)
         case 6...8: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1)
-        /*case 9...11: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1, speedRoads: true)
+        case 9...11: maze = Maze(blockCount: 13, mazeSize: CGSize(width: size.width * 0.72, height: size.height * 0.72), finishBlockI: 11, finishBlockJ: 11, timer: 1, speedRoads: true)
         case 12...14: maze = Maze(blockCount: 15, mazeSize: CGSize(width: size.width * 0.8, height: size.height * 0.8), finishBlockI: 13, finishBlockJ: 13, timer: 1, speedRoads: true)
         case 15...17: maze = Maze(blockCount: 17, mazeSize: CGSize(width: size.width * 0.9, height: size.height * 0.9), finishBlockI: 15, finishBlockJ: 15, timer: 1, speedRoads: true)
         case 18...19: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true)
-        case 20...24: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 1, speedRoads: true)
-        case 25...27: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true)
-        case 28...33: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1)
-        case 34...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)*/
-        case 9...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, teleports: 2, speedRoads: true, inversions: 1, warders: 1)
+        case 20...24: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 1)
+        case 25...27: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2)
+        case 28...33: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1)
+        case 34...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1, warders: 1)
+        //case 9...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1, warders: 1)
         default: break
         }
         //maze = Maze(blockCount: 19, mazeSize: size, finishBlockI: 17, finishBlockJ: 17)
@@ -400,53 +404,53 @@ class Competitive: SKScene {
         bgBasic!.addChild(maze!.bg!)
         maze!.printMaze()
         
-        timer = NSTimer.scheduledTimerWithTimeInterval(0.1, target: self, selector: Selector("counter"), userInfo: nil, repeats: true)
+        timer = Timer.scheduledTimer(timeInterval: 0.1, target: self, selector: #selector(Competitive.counter), userInfo: nil, repeats: true)
         count = 0.0
     }
     
     func addResult() {
-        resultBg = SKSpriteNode(color: UIColor.blackColor().colorWithAlphaComponent(0.8), size: self.size)
+        resultBg = SKSpriteNode(color: UIColor.black.withAlphaComponent(0.8), size: self.size)
         resultBg!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         resultBg!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         resultBg!.zPosition = 99
         addChild(resultBg!)
-        resultBg!.hidden = true
+        resultBg!.isHidden = true
         
         continueButton.position = CGPoint(x: 0, y: -280)
         resultBg!.addChild(continueButton)
         
-        if defaults.integerForKey("points") == 0 {
-            defaults.setInteger(100, forKey: "points")
+        if defaults.integer(forKey: "points") == 0 {
+            defaults.set(100, forKey: "points")
         }
         
         plusPercent.position = CGPoint(x: 0, y: 120)
-        plusPercent.fontColor = SKColor.whiteColor()
+        plusPercent.fontColor = SKColor.white
         plusPercent.fontSize = 120.0
         resultBg!.addChild(plusPercent)
         
         currentLvl.position = CGPoint(x: -240, y: -50)
-        currentLvl.fontColor = SKColor.whiteColor()
+        currentLvl.fontColor = SKColor.white
         currentLvl.fontSize = 44.0
         resultBg!.addChild(currentLvl)
         
         nextLvl.position = CGPoint(x: 240, y: -50)
-        nextLvl.fontColor = SKColor.whiteColor()
+        nextLvl.fontColor = SKColor.white
         nextLvl.fontSize = 44.0
         resultBg!.addChild(nextLvl)
         
-        bgLvlLine = SKSpriteNode(color: UIColor.whiteColor(), size: CGSize(width: size.width * 0.8 + 20, height: 60))
+        bgLvlLine = SKSpriteNode(color: UIColor.white, size: CGSize(width: size.width * 0.8 + 20, height: 60))
         bgLvlLine!.position = CGPoint(x: 0, y: 50)
         resultBg!.addChild(bgLvlLine!)
         
-        lvlLine = SKSpriteNode(color: UIColor.blackColor(), size: CGSize(width: size.width * 0.8, height: 40))
+        lvlLine = SKSpriteNode(color: UIColor.black, size: CGSize(width: size.width * 0.8, height: 40))
         
-        lvlLineMask = SKSpriteNode(color: UIColor.blackColor(), size: CGSize(width: size.width * 0.8, height: 40))
+        lvlLineMask = SKSpriteNode(color: UIColor.black, size: CGSize(width: size.width * 0.8, height: 40))
         lvlLineMask.anchorPoint = CGPoint(x: 0.0, y: 0.5)
         lvlLineMask.position = CGPoint(x: -lvlLine!.size.width / 2, y: 0)
         
         cropNode.addChild(lvlLine!)
         cropNode.maskNode = lvlLineMask
-        cropNode.position = CGPointMake(0, 0)
+        cropNode.position = CGPoint(x: 0, y: 0)
         bgLvlLine!.addChild(cropNode)
     }
     
@@ -458,14 +462,14 @@ class Competitive: SKScene {
     }
     
     func addCoinsInfo() {
-        var coinIcon = SKSpriteNode(imageNamed: "coin")
+        let coinIcon = SKSpriteNode(imageNamed: "coin")
         coinIcon.size = CGSize(width: 50, height: 50)
         coinIcon.position = CGPoint(x: 70, y: 70)
         addChild(coinIcon)
         
-        coinsCountLabel.text = "\(defaults.integerForKey("coins")) coins"
+        coinsCountLabel.text = "\(defaults.integer(forKey: "coins")) coins"
         coinsCountLabel.position = CGPoint(x: 160, y: 57)
-        coinsCountLabel.fontColor = SKColor.whiteColor()
+        coinsCountLabel.fontColor = SKColor.white
         coinsCountLabel.fontSize = 34
         coinsCountLabel.fontName = "Chalkboard SE Bold"
         coinsCountLabel.name = "coinsCount"
@@ -476,17 +480,17 @@ class Competitive: SKScene {
     func addTimer() {
         timeLabel.text = "Time: \(count)"
         timeLabel.position = CGPoint(x: size.width - 80, y: size.height - 160)
-        timeLabel.fontColor = SKColor.whiteColor()
+        timeLabel.fontColor = SKColor.white
         timeLabel.fontSize = 28
         timeLabel.fontName = "Chalkboard SE Bold"
         timeLabel.name = "timer"
         timeLabel.zPosition = 99
         addChild(timeLabel)
         
-        results = defaults.doubleForKey("bestTime")
+        results = defaults.double(forKey: "bestTime")
         bestTimeLabel.text = "Best time: \(results)"
         bestTimeLabel.position = CGPoint(x: 150, y: size.height - 160)
-        bestTimeLabel.fontColor = SKColor.whiteColor()
+        bestTimeLabel.fontColor = SKColor.white
         bestTimeLabel.fontSize = 28
         bestTimeLabel.fontName = "Chalkboard SE Bold"
         bestTimeLabel.name = "bestTime"
@@ -506,18 +510,33 @@ class Competitive: SKScene {
     
     
     //send high score to leaderboard
-    func saveHighscore(score:Int) {
+    func saveHighscore(_ score:Int) {
         //check if user is signed in
-        if GKLocalPlayer.localPlayer().authenticated {
-            var scoreReporter = GKScore(leaderboardIdentifier: "leaderBoard") //leaderboard id here
+        if GKLocalPlayer.localPlayer().isAuthenticated {
+            let scoreReporter = GKScore(leaderboardIdentifier: "leaderBoard") //leaderboard id here
             scoreReporter.value = Int64(score) //score variable here (same as above)
-            var scoreArray: [GKScore] = [scoreReporter]
-            GKScore.reportScores(scoreArray, withCompletionHandler: {(error : NSError?) -> Void in
+            let scoreArray: [GKScore] = [scoreReporter]
+            GKScore.report(scoreArray, withCompletionHandler: {(error : Error?) -> Void in
                 if error != nil {
                     print("error")
                 }
             })
             //GKScore.reportScores(scoreArray, withCompletionHandler: )
         }
+    }
+    
+    //shows leaderboard screen
+    func showLeader() {
+        let vc = self.view?.window?.rootViewController
+        let gc = GKGameCenterViewController()
+        gc.gameCenterDelegate = self
+        vc?.present(gc, animated: true, completion: nil)
+    }
+    
+    //hides leaderboard screen
+    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController!)
+    {
+        gameCenterViewController.dismiss(animated: true, completion: nil)
+        
     }
 }

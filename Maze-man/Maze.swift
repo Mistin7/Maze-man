@@ -7,9 +7,10 @@
 //
 
 import SpriteKit
+import GameKit
 
 class Maze {
-    var maze: [[Int]]? //Массив с блоками
+    var maze: [[UInt8]]? //Массив с блоками
     var blockCount: Int? //Кол-во блоков в строке и столбце
     var actualPoint: (i: Int, j: Int)? //Точка, в которой мы находимся сейчас (для генерации лабиринта)
     var whiteBlocks: [(i: Int, j: Int)] = [] //Все нечётные белые блоки (дорожки)
@@ -46,13 +47,27 @@ class Maze {
     var warderVariants: [(i: Int, j: Int, direction: Int)] = [] //Задаём позицию и направление смотрителя (всех возможных)
     var coins: [(coin: SKSpriteNode, i: Int, j: Int)] = [] //Используем только при построении, при игре - нет
     var competitiveMod: Bool //Если режим лабиринта соревновательный, то true, если свободный - false
+    let defaults = UserDefaults.standard
     
+    //Всё для мультиплеера
+    //Для мультиплеера соперник
+    var rivalPlayer: SKSpriteNode?
+    //Всё для движения плеера соперника
+    var rivalPosition: (i: Int, j: Int)?
+    var willRivalPosition: CGPoint?
+    var willRivalDirection: Int?
+    var rivalSpeed: CGFloat?
+    var moveRivalDirection = 4 //Куда плееру двигаться; если 4, то он стоит на месте
+    var moveRivalResolution = true
+    var rivalSpeedK: CGFloat? //Коэффикиент скорости нашего соперника (меняется прокачкой)
+    //Наш матч
+    var match: GKMatch?
     
     var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"] // добавляем различные скины для сцен
     var randomScenery: String
     
     
-    init(competitiveMod: Bool = true, blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize? = nil, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0) {
+    init(competitiveMod: Bool = true, blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize? = nil, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0, match: GKMatch? = nil) {
         self.blockCount = blockCount
         self.startBlockPosition = (i: startBlockI, j: startBlockJ)
         self.finishBlockPosition = (i: finishBlockI, j: finishBlockJ)
@@ -66,40 +81,68 @@ class Maze {
         }
         playerPosition = (i: self.startBlockPosition.i, j: self.startBlockPosition.j)
         whiteBlocks.append((i: startBlockI, j: startBlockI))
-        square = [[Bool]](count: blockCount/9 + 1, repeatedValue: [Bool](count: blockCount/9 + 1, repeatedValue: false))
-        maze = [[Int]](count: blockCount, repeatedValue: [Int](count: blockCount, repeatedValue: 0))
+        square = [[Bool]](repeating: [Bool](repeating: false, count: blockCount/9 + 1), count: blockCount/9 + 1)
+        maze = [[UInt8]](repeating: [UInt8](repeating: 0, count: blockCount), count: blockCount)
         
         var playerTextures: [SKTexture] = []
         for i in 1...2 {
             playerTextures.append(SKTexture(imageNamed: "player\(i)"))
         }
-        playerAnimation = SKAction.repeatActionForever(SKAction.animateWithTextures(playerTextures, timePerFrame: 0.3))
-        
-        generateMaze()
-        addBg()
-        //generateShape()
-        generateShape2()
-        startAndFinishBlocks()
-        playerSettings()
-        self.willPlayerPosition = player!.position
+        playerAnimation = SKAction.repeatForever(SKAction.animate(with: playerTextures, timePerFrame: 0.3))
         
         if competitiveMod {
             print("CompetitiveMod")
+            
+            generateMaze()
+            addBg()
+            //generateShape()
+            generateShape2()
+            startAndFinishBlocks()
+            playerSettings()
+            self.willPlayerPosition = player!.position
+            
             if timer > 0 { generateTimer(timer) }
             if speedRoads { addSpeedRoads() }
             if teleports > 0 { addTeleport(teleports * 2) }
-            if inversions > 0 { addInversion(inversions) }
+            //if inversions > 0 { addInversion(inversions) } //Потом добавить
             if warders > 0 { addWarders(warders) }
             addCoins()
         } else {
             print("FreeMod")
+            
+            //generateMaze()
+            addBg()
+            //generateShape2()
+            //startAndFinishBlocks()
+            playerSettings()
+            rivalSettings() //Отображаем вржеского плеера
+            self.willPlayerPosition = player!.position
+            self.willRivalPosition = rivalPlayer!.position
+            if match != nil {
+                self.match = match
+            }
+            
             //По плану сделать столько-то итемов на каждые 100 квадратиков (10х10)
-            if timer > 0 { generateTimer(timer) }
+            /*if timer > 0 { generateTimer(timer) }
             if speedRoads { addSpeedRoads() }
             if teleports > 0 { addTeleport(teleports * 2) }
-            if inversions > 0 { addInversion(inversions) }
-            if warders > 0 { addWarders(warders) }
+            //if inversions > 0 { addInversion(inversions) } //Потом добавить
+            if warders > 0 { addWarders(warders) }*/
         }
+    }
+    
+    func startForMultiGame() {
+        //Отправляем свой скин и скорость сопернику
+        do {
+            try self.match!.sendData(toAllPlayers: NSData(bytes: [0, UInt8(defaults.integer(forKey: "speed"))] as [UInt8], length: 2) as Data, with: GKMatchSendDataMode.reliable)
+        } catch {
+            print("Some error in sendData")
+        }
+        //Считается что массив с лабиринтом уже есть
+        //Дальше идёт прорисовка
+        printMaze()
+        generateShape2()
+        startAndFinishBlocks()
     }
     
     func playerSettings() {
@@ -112,17 +155,46 @@ class Maze {
         bg!.addChild(player!)
     }
     
+    //Отвечает за отображение персонажа соперника в мультиплеере
+    func rivalSettings() {
+        rivalPlayer = SKSpriteNode(imageNamed: "player0")
+        rivalPlayer!.name = "rival"
+        rivalPlayer!.size = blockSize!
+        rivalPlayer!.position = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+        rivalPlayer!.zPosition = 5
+        rivalPosition = (i: self.startBlockPosition.i, j: self.startBlockPosition.j)
+        bg!.addChild(rivalPlayer!)
+    }
+    
     //Передвигаем плеера по лабиринту
-    func movePlayer(direction: Int, playerSpeadChange: Bool) {
+    func movePlayer(_ direction: Int, playerSpeadChange: Bool) {
+        //Если у нас мультиплеер, то передаём сопернику наше напралвние (только когда мы сами начинаем двигаться, а не заранее)
+        if match != nil {
+            do {
+                try match!.sendData(toAllPlayers: NSData(bytes: [UInt8(direction)] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
+            } catch {
+                print("Some error in sendData")
+            }
+        }
         var count = 0
+        var qweq: Int = 0 //Чтобы не ругался на too complex в условии while
+        var qwew: Int = 0 //Чтобы не ругался на too complex в условии while
+        var qwee: Int = 0 //Чтобы не ругался на too complex в условии while
         switch direction {
         case 0:
             player!.zRotation = Pi/2
             if maze![playerPosition.i - 1][playerPosition.j] != 0 {
                 print("q0")
+                qweq = 0
+                qwew = 0
+                qwee = 0
                 repeat {
                     count += 1
-                } while(maze![playerPosition.i - count][playerPosition.j + 1] == 0 && maze![playerPosition.i - count][playerPosition.j - 1] == 0 && maze![playerPosition.i - count - 1][playerPosition.j] != 0)
+                    qweq = Int(maze![Int(playerPosition.i - count)][Int(playerPosition.j + 1)])
+                    qwew = Int(maze![playerPosition.i - count][playerPosition.j - 1])
+                    qwee = Int(maze![playerPosition.i - count - 1][playerPosition.j])
+                } //while(maze![playerPosition.i - count][playerPosition.j + 1] == 0 && maze![playerPosition.i - count][playerPosition.j - 1] == 0 && maze![playerPosition.i - count - 1][playerPosition.j] != 0)
+                while(qweq == 0 && qwew == 0 && qwee != 0)
                 willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height + CGFloat(count) * player!.frame.height)
                 startPlayerAnimation()
             }
@@ -130,19 +202,30 @@ class Maze {
             player!.zRotation = 0
             if maze![playerPosition.i][playerPosition.j + 1] != 0 {
                 print("q1")
+                qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
-                } while(maze![playerPosition.i + 1][playerPosition.j + count] == 0 && maze![playerPosition.i - 1][playerPosition.j + count] == 0 && maze![playerPosition.i][playerPosition.j + count + 1] != 0)
-                willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width  + CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                    qweq = Int(maze![playerPosition.i + 1][playerPosition.j + count])
+                    qwew = Int(maze![playerPosition.i - 1][playerPosition.j + count])
+                    qwee = Int(maze![playerPosition.i][playerPosition.j + count + 1])
+                } //while(maze![playerPosition.i + 1][playerPosition.j + count] == 0 && maze![playerPosition.i - 1][playerPosition.j + count] == 0 && maze![playerPosition.i][playerPosition.j + count + 1] != 0)
+                while(qweq == 0 && qwew == 0 && qwee != 0)
+                //willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width  + CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                willPlayerPosition.x = player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width  + CGFloat(count) * player!.frame.width
+                willPlayerPosition.y = -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height
                 startPlayerAnimation()
             }
         case 2:
             player!.zRotation = -Pi/2
             if maze![playerPosition.i + 1][playerPosition.j] != 0 {
                 print("q2")
+                qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
-                } while(maze![playerPosition.i + count][playerPosition.j + 1] == 0 && maze![playerPosition.i + count][playerPosition.j - 1] == 0 && maze![playerPosition.i + count + 1][playerPosition.j] != 0)
+                    qweq = Int(maze![playerPosition.i + count][playerPosition.j + 1])
+                    qwew = Int(maze![playerPosition.i + count][playerPosition.j - 1])
+                    qwee = Int(maze![playerPosition.i + count + 1][playerPosition.j])
+                } while(qweq == 0 && qwew == 0 && qwee != 0)
                 willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height - CGFloat(count) * player!.frame.height)
                 startPlayerAnimation()
             }
@@ -150,10 +233,17 @@ class Maze {
             player!.zRotation = Pi
             if maze![playerPosition.i][playerPosition.j - 1] != 0 {
                 print("q3")
+                qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
-                } while(maze![playerPosition.i + 1][playerPosition.j - count] == 0 && maze![playerPosition.i - 1][playerPosition.j - count] == 0 && maze![playerPosition.i][playerPosition.j - count - 1] != 0)
-                willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width - CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                    qweq = Int(maze![playerPosition.i + 1][playerPosition.j - count])
+                    qwew = Int(maze![playerPosition.i - 1][playerPosition.j - count])
+                    qwee = Int(maze![playerPosition.i][playerPosition.j - count - 1])
+                } //while(maze![playerPosition.i + 1][playerPosition.j - count] == 0 && maze![playerPosition.i - 1][playerPosition.j - count] == 0 && maze![playerPosition.i][playerPosition.j - count - 1] != 0)
+                while(qweq == 0 && qwew == 0 && qwee != 0)
+                //willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width - CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                willPlayerPosition.x = player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width - CGFloat(count) * player!.frame.width
+                willPlayerPosition.y = -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height
                 startPlayerAnimation()
             }
         default: break
@@ -161,11 +251,99 @@ class Maze {
         moveResolution = false
         movePlayerDirection = direction
         if playerSpeadChange {
-            playerSpeed = sqrt(CGFloat(count)) * blockSize!.width * 2 //Скорость пикселей в секунду
+            //playerSpeed = sqrt(CGFloat(count)) * blockSize!.width * 2 //Скорость пикселей в секунду
+            playerSpeed = sqrt(CGFloat(count)) * blockSize!.width * 1.5 + 3 + CGFloat(defaults.integer(forKey: "speed")) //Скорость пикселей в секунду
         }
     }
+    
+    
+    //Передвигаем плеера соперника по лабиринту
+    func moveRival(_ direction: Int, playerSpeadChange: Bool) {
+        var count = 0
+        var qweq: Int = 0 //Чтобы не ругался на too complex в условии while
+        var qwew: Int = 0 //Чтобы не ругался на too complex в условии while
+        var qwee: Int = 0 //Чтобы не ругался на too complex в условии while
+        switch direction {
+        case 0:
+            rivalPlayer!.zRotation = Pi/2
+            if maze![rivalPosition!.i - 1][rivalPosition!.j] != 0 {
+                //print("q0")
+                qweq = 0
+                qwew = 0
+                qwee = 0
+                repeat {
+                    count += 1
+                    qweq = Int(maze![Int(rivalPosition!.i - count)][Int(rivalPosition!.j + 1)])
+                    qwew = Int(maze![rivalPosition!.i - count][rivalPosition!.j - 1])
+                    qwee = Int(maze![rivalPosition!.i - count - 1][rivalPosition!.j])
+                } while(qweq == 0 && qwew == 0 && qwee != 0)
+                willRivalPosition = CGPoint(x: rivalPlayer!.frame.width / 2 + CGFloat(rivalPosition!.j) * player!.frame.width, y: -rivalPlayer!.frame.height / 2 - CGFloat(rivalPosition!.i) * rivalPlayer!.frame.height + CGFloat(count) * rivalPlayer!.frame.height)
+                //startPlayerAnimation()
+            }
+        case 1:
+            rivalPlayer!.zRotation = 0
+            if maze![rivalPosition!.i][rivalPosition!.j + 1] != 0 {
+                print("q1")
+                qweq = 0; qwew = 0; qwee = 0
+                repeat {
+                    count += 1
+                    qweq = Int(maze![rivalPosition!.i + 1][rivalPosition!.j + count])
+                    qwew = Int(maze![rivalPosition!.i - 1][rivalPosition!.j + count])
+                    qwee = Int(maze![rivalPosition!.i][rivalPosition!.j + count + 1])
+                } //while(maze![playerPosition.i + 1][playerPosition.j + count] == 0 && maze![playerPosition.i - 1][playerPosition.j + count] == 0 && maze![playerPosition.i][playerPosition.j + count + 1] != 0)
+                    while(qweq == 0 && qwew == 0 && qwee != 0)
+                //willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width  + CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                willRivalPosition?.x = rivalPlayer!.frame.width / 2 + CGFloat(rivalPosition!.j) * rivalPlayer!.frame.width  + CGFloat(count) * rivalPlayer!.frame.width
+                willRivalPosition?.y = -rivalPlayer!.frame.height / 2 - CGFloat(rivalPosition!.i) * rivalPlayer!.frame.height
+                //startPlayerAnimation()
+            }
+        case 2:
+            rivalPlayer!.zRotation = -Pi/2
+            if maze![rivalPosition!.i + 1][rivalPosition!.j] != 0 {
+                print("q2")
+                qweq = 0; qwew = 0; qwee = 0
+                repeat {
+                    count += 1
+                    qweq = Int(maze![rivalPosition!.i + count][rivalPosition!.j + 1])
+                    qwew = Int(maze![rivalPosition!.i + count][rivalPosition!.j - 1])
+                    qwee = Int(maze![rivalPosition!.i + count + 1][rivalPosition!.j])
+                } while(qweq == 0 && qwew == 0 && qwee != 0)
+                willRivalPosition = CGPoint(x: rivalPlayer!.frame.width / 2 + CGFloat(rivalPosition!.j) * rivalPlayer!.frame.width, y: -rivalPlayer!.frame.height / 2 - CGFloat(rivalPosition!.i) * rivalPlayer!.frame.height - CGFloat(count) * rivalPlayer!.frame.height)
+                //startPlayerAnimation()
+            }
+        case 3:
+            rivalPlayer!.zRotation = Pi
+            if maze![rivalPosition!.i][rivalPosition!.j - 1] != 0 {
+                print("q3")
+                qweq = 0; qwew = 0; qwee = 0
+                repeat {
+                    count += 1
+                    qweq = Int(maze![rivalPosition!.i + 1][rivalPosition!.j - count])
+                    qwew = Int(maze![rivalPosition!.i - 1][rivalPosition!.j - count])
+                    qwee = Int(maze![rivalPosition!.i][rivalPosition!.j - count - 1])
+                } //while(maze![playerPosition.i + 1][playerPosition.j - count] == 0 && maze![playerPosition.i - 1][playerPosition.j - count] == 0 && maze![playerPosition.i][playerPosition.j - count - 1] != 0)
+                    while(qweq == 0 && qwew == 0 && qwee != 0)
+                //willPlayerPosition = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width - CGFloat(count) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
+                willRivalPosition?.x = rivalPlayer!.frame.width / 2 + CGFloat(rivalPosition!.j) * rivalPlayer!.frame.width - CGFloat(count) * rivalPlayer!.frame.width
+                willRivalPosition?.y = -rivalPlayer!.frame.height / 2 - CGFloat(rivalPosition!.i) * rivalPlayer!.frame.height
+                //startPlayerAnimation()
+            }
+        default: break
+        }
+        moveRivalResolution = false
+        moveRivalDirection = direction
+        if playerSpeadChange {
+            //playerSpeed = sqrt(CGFloat(count)) * blockSize!.width * 2 //Скорость пикселей в секунду
+            //rivalSpeed = sqrt(CGFloat(count)) * blockSize!.width * 1.5 + 3 + CGFloat(defaults.integer(forKey: "speed")) //Скорость пикселей в секунду
+            rivalSpeed = sqrt(CGFloat(count)) * blockSize!.width * 1.5 + 3 + rivalSpeedK! //Скорость пикселей в секунду
+            // !!! У противника скорость такая же как и нас. Поэтому в начале игры он нам должен передавать свою скорость (коэффициент)
+        }
+    }
+    
+    
     //Генерируем лабиринт
     func generateMaze() {
+        //maze = [[UInt8]](repeating: [UInt8](repeating: 0, count: blockCount!), count: blockCount!)
         while checkBlocks() {
             checkWhiteBlocks()
             let randWhiteBlockNumber = Int(random(min: 0, max: CGFloat(whiteBlocks.count)))
@@ -209,8 +387,16 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int((actualPoint!.i + 3) / 9)][Int(actualPoint!.j / 9)] = true
-                } else if maze![actualPoint!.i + 3][actualPoint!.j] == 1 && (maze![actualPoint!.i + 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i + 2][actualPoint!.j - 1] == 1) {
+                } /*else if maze![actualPoint!.i + 3][actualPoint!.j] == 1 && (maze![actualPoint!.i + 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i + 2][actualPoint!.j - 1] == 1) { //Это выдаёт ошибку too complex, потом это вернуть
                     warderVariants.append((i: actualPoint!.i + 4, j: actualPoint!.j, direction: 0))
+                }*/
+                else if maze![actualPoint!.i + 3][actualPoint!.j] == 1 {
+                    if maze![actualPoint!.i + 2][actualPoint!.j + 1] == 1 {
+                        warderVariants.append((i: actualPoint!.i + 4, j: actualPoint!.j, direction: 0))
+                    }
+                    if maze![actualPoint!.i + 2][actualPoint!.j - 1] == 1 {
+                        warderVariants.append((i: actualPoint!.i + 4, j: actualPoint!.j, direction: 0))
+                    }
                 }
             case 1:
                 maze![actualPoint!.i][actualPoint!.j + 1] = 1
@@ -222,8 +408,16 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int(actualPoint!.i / 9)][Int((actualPoint!.j - 3) / 9)] = true
-                } else if maze![actualPoint!.i][actualPoint!.j - 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j - 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j - 2] == 1) {
+                } /*else if maze![actualPoint!.i][actualPoint!.j - 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j - 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j - 2] == 1) {
                     warderVariants.append((i: actualPoint!.i, j: actualPoint!.j - 4, direction: 1))
+                }*/
+                else if maze![actualPoint!.i][actualPoint!.j - 3] == 1 {
+                    if maze![actualPoint!.i - 1][actualPoint!.j - 2] == 1 {
+                        warderVariants.append((i: actualPoint!.i, j: actualPoint!.j - 4, direction: 1))
+                    }
+                    if maze![actualPoint!.i + 1][actualPoint!.j - 2] == 1 {
+                        warderVariants.append((i: actualPoint!.i, j: actualPoint!.j - 4, direction: 1))
+                    }
                 }
             case 2:
                 maze![actualPoint!.i + 1][actualPoint!.j] = 1
@@ -235,8 +429,16 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int((actualPoint!.i - 3) / 9)][Int(actualPoint!.j / 9)] = true
-                } else if maze![actualPoint!.i - 3][actualPoint!.j] == 1 && (maze![actualPoint!.i - 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i - 2][actualPoint!.j - 1] == 1) {
+                } /*else if maze![actualPoint!.i - 3][actualPoint!.j] == 1 && (maze![actualPoint!.i - 2][actualPoint!.j + 1] == 1 || maze![actualPoint!.i - 2][actualPoint!.j - 1] == 1) {
                     warderVariants.append((i: actualPoint!.i - 4, j: actualPoint!.j, direction: 2))
+                }*/
+                else if maze![actualPoint!.i - 3][actualPoint!.j] == 1 {
+                    if maze![actualPoint!.i - 2][actualPoint!.j + 1] == 1 {
+                        warderVariants.append((i: actualPoint!.i - 4, j: actualPoint!.j, direction: 2))
+                    }
+                    if maze![actualPoint!.i - 2][actualPoint!.j - 1] == 1 {
+                        warderVariants.append((i: actualPoint!.i - 4, j: actualPoint!.j, direction: 2))
+                    }
                 }
             case 3:
                 maze![actualPoint!.i][actualPoint!.j - 1] = 1
@@ -248,8 +450,16 @@ class Maze {
                         speedRoads[speedRoads.count - 1].backBorder = true
                     }
                     square[Int(actualPoint!.i / 9)][Int((actualPoint!.j + 3) / 9)] = true
-                } else if maze![actualPoint!.i][actualPoint!.j + 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j + 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j + 2] == 1) {
+                } /*else if maze![actualPoint!.i][actualPoint!.j + 3] == 1 && (maze![actualPoint!.i - 1][actualPoint!.j + 2] == 1 || maze![actualPoint!.i + 1][actualPoint!.j + 2] == 1) {
                     warderVariants.append((i: actualPoint!.i, j: actualPoint!.j + 4, direction: 3))
+                }*/
+                else if maze![actualPoint!.i][actualPoint!.j + 3] == 1 {
+                    if maze![actualPoint!.i - 1][actualPoint!.j + 2] == 1 {
+                        warderVariants.append((i: actualPoint!.i, j: actualPoint!.j + 4, direction: 3))
+                    }
+                    if maze![actualPoint!.i + 1][actualPoint!.j + 2] == 1 {
+                        warderVariants.append((i: actualPoint!.i, j: actualPoint!.j + 4, direction: 3))
+                    }
                 }
             default: break
             }
@@ -261,8 +471,8 @@ class Maze {
     //Проверяем, заполнен массив или нет
     func checkBlocks() -> Bool {
         var q = false
-        for i in 1.stride(to: maze!.count, by: 2) {
-            for j in 1.stride(to: maze![0].count, by: 2) {
+        for i in stride(from: 1, to: maze!.count, by: 2) {
+            for j in stride(from: 1, to: maze![0].count, by: 2) {
                 if maze![i][j] == 0 {
                     q = true
                     break
@@ -281,10 +491,10 @@ class Maze {
     }
     //Удаляем белые блоки, которые окружены другими белыми блоками(чтобы не продолжать лабиринт оттуда)
     func checkWhiteBlocks() {
-        for (index, i) in whiteBlocks.enumerate() {
+        for (index, i) in whiteBlocks.enumerated() {
             let q = checkSides(i.i, positionJ: i.j)
             if (q.top == false && q.right == false && q.bottom == false && q.left == false) {
-                whiteBlocks.removeAtIndex(index)
+                whiteBlocks.remove(at: index)
                 checkWhiteBlocks()
                 break
             }
@@ -303,45 +513,45 @@ class Maze {
         //var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         for row in 1..<maze!.count-1 {
-            var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
+            let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
             tile.size = blockSize!
             tile.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
             tile.zPosition = 1
             bg!.addChild(tile)
             
-            var tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
+            let tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
             tileright.size = blockSize!
             tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
             bg!.addChild(tileright)
         }
         for col in 1..<maze![0].count-1 {
-            var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-mid"))
+            let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-mid"))
             tile.size = blockSize!
             tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
             bg!.addChild(tile)
             
-            var tilebot = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
+            let tilebot = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
             tilebot.size = blockSize!
             tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
             bg!.addChild(tilebot)
         }
         
-        var tiletopleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-left"))
+        let tiletopleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-left"))
         tiletopleft.size = blockSize!
         tiletopleft.position = CGPoint(x: blockSize!.width / 2, y: -blockSize!.height / 2)
         bg!.addChild(tiletopleft)
         
-        var tiletopright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-right"))
+        let tiletopright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-right"))
         tiletopright.size = blockSize!
         tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
         bg!.addChild(tiletopright)
         
-        var tilebotleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-left"))
+        let tilebotleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-left"))
         tilebotleft.size = blockSize!
         tilebotleft.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
         bg!.addChild(tilebotleft)
         
-        var tilebotright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-right"))
+        let tilebotright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-right"))
         tilebotright.size = blockSize!
         tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
         bg!.addChild(tilebotright)
@@ -349,7 +559,7 @@ class Maze {
         //Заполняем всё зелёными квадратами (кроме граней)
         for i in 1..<maze!.count-1 {
             for j in 1..<maze![0].count-1 {
-                var tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-main"))
+                let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-main"))
                 tile.size = blockSize!
                 tile.position = CGPoint(x: CGFloat(j) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(i) * blockSize!.height - blockSize!.height / 2)
                 bg!.addChild(tile)
@@ -359,29 +569,29 @@ class Maze {
     
     //Даёт плееру анимацию
     func startPlayerAnimation() {
-        if player!.actionForKey("playerAnimation") == nil {
-            player!.runAction(SKAction.repeatActionForever(playerAnimation), withKey: "playerAnimation")
+        if player!.action(forKey: "playerAnimation") == nil {
+            player!.run(SKAction.repeatForever(playerAnimation), withKey: "playerAnimation")
         }
     }
     //Останавливает анимацию плееру
     func stopPlayerAnimation() {
-        player!.removeActionForKey("playerAnimation")
+        player!.removeAction(forKey: "playerAnimation")
         player!.texture = SKTexture(imageNamed: "player0")
     }
     
     //Выводим на экран старт и финиш
     func startAndFinishBlocks() {
         //Добавляем блок старта
-        startBlock = SKShapeNode(rectOfSize: blockSize!)
+        startBlock = SKShapeNode(rectOf: blockSize!)
         startBlock!.lineWidth = 0.0
-        startBlock!.fillColor = SKColor.whiteColor()
+        startBlock!.fillColor = SKColor.white
         startBlock!.position = CGPoint(x: blockSize!.width * CGFloat(startBlockPosition.j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(startBlockPosition.i))
         startBlock?.zPosition = 4
         bg!.addChild(startBlock!)
         //Добавляем блок финиша
-        finishBlock = SKShapeNode(rectOfSize: blockSize!)
+        finishBlock = SKShapeNode(rectOf: blockSize!)
         finishBlock!.lineWidth = 0.0
-        finishBlock!.fillColor = SKColor.redColor()
+        finishBlock!.fillColor = SKColor.red
         finishBlock!.position = CGPoint(x: blockSize!.width * CGFloat(finishBlockPosition.j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(finishBlockPosition.i))
         finishBlock?.zPosition = 4
         bg!.addChild(finishBlock!)
@@ -389,7 +599,7 @@ class Maze {
     }
     
     //Проверяем выходит ли точка за рамки массива и свободно ли по сторонам
-    func checkSides(positionI: Int, positionJ: Int) -> (top: Bool, right: Bool, bottom: Bool, left: Bool) {
+    func checkSides(_ positionI: Int, positionJ: Int) -> (top: Bool, right: Bool, bottom: Bool, left: Bool) {
         var sides = (top: true, right: true, bottom: true, left: true)
         switch positionI {
         case 0,1: sides.top = false
@@ -435,51 +645,51 @@ class Maze {
         let count = speedRoads.count
         if count > 0 {
             for i in 0...count - 1 {
-                maze![speedRoads[i].i][speedRoads[i].j] = speedRoads[i].direction + 2
+                maze![speedRoads[i].i][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                 switch speedRoads[i].direction {
                 case 0:
                     speedRoads.append((i: speedRoads[i].i - 1, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i - 1][speedRoads[i].j] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i - 1][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     speedRoads.append((i: speedRoads[i].i - 2, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i - 2][speedRoads[i].j] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i - 2][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     if speedRoads[i].backBorder {
                         speedRoads.append((i: speedRoads[i].i + 1, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i + 1][speedRoads[i].j] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i + 1][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                         speedRoads.append((i: speedRoads[i].i + 2, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i + 2][speedRoads[i].j] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i + 2][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     }
                 case 1:
                     speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j + 1, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i][speedRoads[i].j + 1] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i][speedRoads[i].j + 1] = UInt8(speedRoads[i].direction + 2)
                     speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j + 2, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i][speedRoads[i].j + 2] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i][speedRoads[i].j + 2] = UInt8(speedRoads[i].direction + 2)
                     if speedRoads[i].backBorder {
                         speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j - 1, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i][speedRoads[i].j - 1] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i][speedRoads[i].j - 1] = UInt8(speedRoads[i].direction + 2)
                         speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j - 2, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i][speedRoads[i].j - 2] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i][speedRoads[i].j - 2] = UInt8(speedRoads[i].direction + 2)
                     }
                 case 2:
                     speedRoads.append((i: speedRoads[i].i + 1, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i + 1][speedRoads[i].j] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i + 1][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     speedRoads.append((i: speedRoads[i].i + 2, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i + 2][speedRoads[i].j] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i + 2][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     if speedRoads[i].backBorder {
                         speedRoads.append((i: speedRoads[i].i - 1, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i - 1][speedRoads[i].j] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i - 1][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                         speedRoads.append((i: speedRoads[i].i - 2, j: speedRoads[i].j, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i - 2][speedRoads[i].j] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i - 2][speedRoads[i].j] = UInt8(speedRoads[i].direction + 2)
                     }
                 case 3:
                     speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j - 1, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i][speedRoads[i].j - 1] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i][speedRoads[i].j - 1] = UInt8(speedRoads[i].direction + 2)
                     speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j - 2, direction: speedRoads[i].direction,backBorder: false))
-                    maze![speedRoads[i].i][speedRoads[i].j - 2] = speedRoads[i].direction + 2
+                    maze![speedRoads[i].i][speedRoads[i].j - 2] = UInt8(speedRoads[i].direction + 2)
                     if speedRoads[i].backBorder {
                         speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j + 1, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i][speedRoads[i].j + 1] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i][speedRoads[i].j + 1] = UInt8(speedRoads[i].direction + 2)
                         speedRoads.append((i: speedRoads[i].i, j: speedRoads[i].j + 2, direction: speedRoads[i].direction,backBorder: false))
-                        maze![speedRoads[i].i][speedRoads[i].j + 2] = speedRoads[i].direction + 2
+                        maze![speedRoads[i].i][speedRoads[i].j + 2] = UInt8(speedRoads[i].direction + 2)
                     }
                 default: break
                 }
@@ -507,19 +717,21 @@ class Maze {
     //Заполняем массив с тупиками
     func addDeadLocks(){
         if deadLocks.count == 0 {
-            for var i = 1; i < maze!.count; i += 2 {
-                for var j = 1; j < maze![0].count; j += 2 {
+            //for var i = 1; i < maze!.count; i += 2
+            for i in stride(from: 1, to: maze!.count, by: 2) {
+                //for var j = 1; j < maze![0].count; j += 2 {
+                for j in stride(from: 1, to: maze![0].count, by: 2) {
                     if checkDeadLock(i, positionJ: j) {
                         deadLocks.append((i: i, j: j))
                     }
                 }
             }
-            deadLocks.removeAtIndex(0)
-            deadLocks.removeAtIndex(deadLocks.count-1)
+            deadLocks.remove(at: 0)
+            deadLocks.remove(at: deadLocks.count-1)
         }
     }
     //добалвяем таймер
-    func generateTimer(count: Int) {
+    func generateTimer(_ count: Int) {
         for _ in 0...count - 1 {
             let stopTimer = SKSpriteNode(imageNamed: "stopTimer")
             stopTimer.name = "stopTimer"
@@ -535,38 +747,38 @@ class Maze {
                 stopTimer.position = CGPoint(x: blockSize!.width * CGFloat(deadLocks[randomDeadLock!].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(deadLocks[randomDeadLock!].i))
                 stopTimers.append((stopTimer, i: deadLocks[randomDeadLock!].i, j: deadLocks[randomDeadLock!].j))
                 bg!.addChild(stopTimers[stopTimers.count - 1].0)
-                deadLocks.removeAtIndex(randomDeadLock!)
+                deadLocks.remove(at: randomDeadLock!)
             }
         }
     }
     // Добавляем телепорт
-    func addTeleport(numberTeleports: Int) {
+    func addTeleport(_ numberTeleports: Int) {
         addDeadLocks() //Заполняем массив с тупиками
         for i in 0...numberTeleports-1 {
             var randomDeadLockForTP: Int
             repeat {
                 randomDeadLockForTP = Int(random(min: 0, max: CGFloat(deadLocks.count)))
             } while maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] != 1
-            maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] = 20 + i
-            arrayWithTP.append((teleport: SKShapeNode(rectOfSize: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
+            maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] = UInt8(20 + i)
+            arrayWithTP.append((teleport: SKShapeNode(rectOf: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
             arrayWithTP[i].teleport.fillColor = fillColorTP(i)
             arrayWithTP[i].teleport.lineWidth = 0.0
             arrayWithTP[i].teleport.position = CGPoint(x: blockSize!.width * CGFloat(deadLocks[randomDeadLockForTP].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(deadLocks[randomDeadLockForTP].i))
             arrayWithTP[i].teleport.zPosition = 3
-            deadLocks.removeAtIndex(randomDeadLockForTP)
+            deadLocks.remove(at: randomDeadLockForTP)
             bg!.addChild(arrayWithTP[i].teleport)
         }
     }
     //добавляем цвет телепортам
-    func fillColorTP(number: Int) -> SKColor{
+    func fillColorTP(_ number: Int) -> SKColor{
         switch number{
-        case 0,1: return SKColor.brownColor()
-        case 2,3: return SKColor.yellowColor()
-        case 3,4: return SKColor.purpleColor()
-        case 5,6: return SKColor.orangeColor()
+        case 0,1: return SKColor.brown
+        case 2,3: return SKColor.yellow
+        case 3,4: return SKColor.purple
+        case 5,6: return SKColor.orange
         default: break
         }
-        return SKColor.brownColor()
+        return SKColor.brown
     }
     
     //Добавляем монетки
@@ -577,7 +789,7 @@ class Maze {
             if i < (coins.count - 2) { break }
         }
     }
-    func generateCoin(i: Int? = nil, j: Int? = nil, child: Bool = false) {
+    func generateCoin(_ i: Int? = nil, j: Int? = nil, child: Bool = false) {
         var a: Int
         var b: Int
         if i != nil &&  j != nil {
@@ -615,7 +827,7 @@ class Maze {
         }
     }
     //Проверяем, есть ли по введённой координате монета (true - есть монета)
-    func chekCoinPos(i: Int, j: Int) -> Bool {
+    func chekCoinPos(_ i: Int, j: Int) -> Bool {
         for coin in coins {
             if coin.i == i && coin.j == j {
                 return true
@@ -624,13 +836,22 @@ class Maze {
         return false
     }
     //Проверяем на тупик
-    func checkDeadLock(positionI: Int, positionJ: Int) -> Bool {
+    func checkDeadLock(_ positionI: Int, positionJ: Int) -> Bool {
         var sides = (top: true, right: true, bottom: true, left: true)
         if maze![positionI - 1][positionJ] != 0 { sides.top = false }
         if maze![positionI][positionJ + 1] != 0 { sides.right = false }
         if maze![positionI + 1][positionJ] != 0 { sides.bottom = false }
         if maze![positionI][positionJ - 1] != 0 { sides.left = false }
-        if (Int(sides.top) + Int(sides.right) + Int(sides.bottom) + Int(sides.left) == 3) { return true }
+        var a: Int = 0
+        var b: Int = 0
+        var c: Int = 0
+        var d: Int = 0
+        if sides.top { a = 1 }
+        if sides.right { b = 1 }
+        if sides.bottom { c = 1 }
+        if sides.left { d = 1 }
+        //if (Int(sides.top) + Int(sides.right) + Int(sides.bottom) + Int(sides.left) == 3) { return true }
+        if (a + b + c + d == 3) { return true }
         else { return false }
     }
     
@@ -641,7 +862,7 @@ class Maze {
         var a2 = 2// колличество декораций, занимающих 2 ячейки
         for row in 1..<maze!.count-1 {
             let line = maze![row]
-            for (col, code) in line.enumerate() {
+            for (col, code) in line.enumerated() {
                 var tile: SKNode?
                 switch code {
                 case 0:
@@ -682,9 +903,14 @@ class Maze {
                         tile = SKSpriteNode(texture:atlas!.textureNamed("way2"))
                     }
                     //Тут обычные прямые (-)
-                    else if maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 1 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога вертикальная
+                    //Здесь ошибка too complex, потом это раскоментировать и убрать замену
+                    //else if maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 1 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 1 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 1 { //Дорога вертикальная
+                    else if maze![row+1][col] != 0 || maze![row-1][col] != 0 { //Дорога вертикальная
                         tile = SKSpriteNode(texture:atlas!.textureNamed("way1"))
-                    } else if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 { //Дорога горизонтальная
+                    }
+                    //Здесь ошибка too complex, потом это раскоментировать и убрать замену
+                    //else if maze![row][col+1] == 1 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 1 && maze![row][col-1] == 0 && maze![row-1][col] == 0 && maze![row+1][col] == 0 || maze![row][col+1] == 0 && maze![row][col-1] == 1 && maze![row-1][col] == 0 && maze![row+1][col] == 0 { //Дорога горизонтальная
+                    else if maze![row][col+1] != 0 || maze![row][col-1] != 0 { //Дорога горизонтальная
                         tile = SKSpriteNode(texture:atlas!.textureNamed("way1"))
                         tile!.zRotation = Pi / 2
                     }
@@ -707,7 +933,7 @@ class Maze {
     }
     
     //функция, которая расставляет декорации
-    func addDecor(row: Int, col: Int, k: Int,k2: Int){
+    func addDecor(_ row: Int, col: Int, k: Int,k2: Int){
          let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         let line = maze![row]
         if (maze![row+1][col] == 0 || maze![row-1][col] == 0) && col != 0  && col != (line.count - 1) {
@@ -733,79 +959,79 @@ class Maze {
     
     //Обводим контур лабиринта
     func generateShape() {
-        mazePath.moveToPoint(CGPointMake(blockSize!.width, -blockSize!.height))
+        mazePath.move(to: CGPoint(x: blockSize!.width, y: -blockSize!.height))
         // CGPathMoveToPoint(mazePath, nil, blockSize!.width, -blockSize!.height)
         var i = 1
         var j = 2
         var directionPoint = 1 //0-верх, 1-право, 2-низ, 3-лево
-        mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+        mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
         repeat {
             switch directionPoint {
             case 0:
                 if maze![i-1][j-1] != 0 { // Проверяем лево
                     j = (j-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     //CGPathAddLineToPoint(mazePath, nil, CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height)
                     directionPoint = 3
                 } else if maze![i - 1][j] != 0 { //Проверяем верх
                     i = (i-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 0
                 } else if maze![i][j] != 0 { // Проверяем право
                     j = (j+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 1
                 }
             case 1:
                 if maze![i - 1][j] != 0 { //Проверяем верх
                     i = (i-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 0
                 } else if maze![i][j] != 0 { // Проверяем право
                     j = (j+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 1
                 } else if maze![i][j - 1] != 0{ // Проверяем низ
                     i = (i+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 2
                 }
             case 2:
                 if maze![i][j] != 0 { // Проверяем право
                     j = (j+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 1
                 } else if maze![i][j - 1] != 0 { // Проверяем низ
                     i = (i+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 2
                 } else if maze![i-1][j-1] != 0 { // Проверяем лево
                     j = (j-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 3
                 }
             case 3:
                 if maze![i][j - 1] != 0 { // Проверяем низ
                     i = (i+1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 2
                 } else if maze![i-1][j-1] != 0 { // Проверяем лево
                     j = (j-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 3
                 } else if maze![i - 1][j] != 0 { //Проверяем верх
                     i = (i-1)
-                    mazePath.addLineToPoint(CGPointMake(CGFloat(j) * blockSize!.width, CGFloat(-i) * blockSize!.height))
+                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
                     directionPoint = 0
                 }
             default: break
             }
         } while ((i != 1) || (j != 1))
-        mazePath.addLineToPoint(CGPointMake(blockSize!.width, -blockSize!.height))
-        mazeShape = SKShapeNode(path: mazePath.CGPath, centered: true)
+        mazePath.addLine(to: CGPoint(x: blockSize!.width, y: -blockSize!.height))
+        mazeShape = SKShapeNode(path: mazePath.cgPath, centered: true)
         mazeShape!.position = CGPoint(x: bg!.frame.width / 2, y: -bg!.frame.height / 2)
         mazeShape!.zPosition = 1
-        mazeShape!.fillColor = SKColor.whiteColor()
+        mazeShape!.fillColor = SKColor.white
         mazeShape!.lineWidth = 0.0
         bg!.addChild(mazeShape!)
     }
@@ -825,15 +1051,15 @@ class Maze {
     //Телепортируем плеера к другому телепорту
     func teleportation() {
         if (maze![playerPosition.i][playerPosition.j] % 2) == 0 {
-            player!.position = arrayWithTP[maze![playerPosition.i][playerPosition.j] - 19].teleport.position
-            teleportExit(arrayWithTP[maze![playerPosition.i][playerPosition.j] - 19].i, j: arrayWithTP[maze![playerPosition.i][playerPosition.j] - 19].j)
+            player!.position = arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].teleport.position
+            teleportExit(arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].i, j: arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].j)
         } else {
-            player!.position = arrayWithTP[maze![playerPosition.i][playerPosition.j] - 21].teleport.position
-            teleportExit(arrayWithTP[maze![playerPosition.i][playerPosition.j] - 21].i, j: arrayWithTP[maze![playerPosition.i][playerPosition.j] - 21].j)
+            player!.position = arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 21].teleport.position
+            teleportExit(arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 21].i, j: arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 21].j)
         }
     }
     //функция для выхода из телепорта
-    func teleportExit(i: Int, j: Int) {
+    func teleportExit(_ i: Int, j: Int) {
         if maze![i - 1][j] != 0 {
             movePlayerDirection = 0
             playerPosition = (i: i - 1, j: j)
@@ -858,7 +1084,7 @@ class Maze {
     }
     
     //ТУПО движется по направлению
-    func movePlayer0(dt: Double) {
+    func movePlayer0(_ dt: Double) {
         if player!.position.y > -CGFloat(playerPosition.i) * blockSize!.height - player!.frame.height / 2 {
             playerPosition.i -= 1
             if kSpeed == 0.2 {
@@ -873,24 +1099,25 @@ class Maze {
                 kSpeed = 0.2
             case 6:
                 playTimer = false
-                NSTimer.scheduledTimerWithTimeInterval(4, target: self, selector: Selector("switchTimer"), userInfo: nil, repeats: false)
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
-                for (number, i) in stopTimers.enumerate() {
+                for (number, i) in stopTimers.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        stopTimers.removeAtIndex(number)
+                        stopTimers.remove(at: number)
                         break
                     }
                 }
             case 7:
                 inversion() //Инверсия
-                for (number, i) in arrayWithInversions.enumerate() {
+                for (number, i) in arrayWithInversions.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        arrayWithInversions.removeAtIndex(number)
+                        arrayWithInversions.remove(at: number)
                         break
                     }
-                }            case 20...999:
+                }
+            case 20...255:
                 break
             default: break
             }
@@ -901,7 +1128,7 @@ class Maze {
             teleportation()
         }
     }
-    func movePlayer1(dt: Double) {
+    func movePlayer1(_ dt: Double) {
         if player!.position.x > CGFloat(playerPosition.j) * blockSize!.width + player!.frame.width / 2 {
             playerPosition.j += 1
             if kSpeed == 0.2 {
@@ -916,25 +1143,25 @@ class Maze {
                 kSpeed = 0.2
             case 6:
                 playTimer = false
-                NSTimer.scheduledTimerWithTimeInterval(4, target: self, selector: Selector("switchTimer"), userInfo: nil, repeats: false)
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
-                for (number, i) in stopTimers.enumerate() {
+                for (number, i) in stopTimers.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        stopTimers.removeAtIndex(number)
+                        stopTimers.remove(at: number)
                         break
                     }
                 }
             case 7:
                 inversion() //Инверсия
-                for (number, i) in arrayWithInversions.enumerate() {
+                for (number, i) in arrayWithInversions.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        arrayWithInversions.removeAtIndex(number)
+                        arrayWithInversions.remove(at: number)
                         break
                     }
                 }
-            case 20...999:
+            case 20...255:
                 break
             default: break
             }
@@ -945,7 +1172,7 @@ class Maze {
             teleportation()
         }
     }
-    func movePlayer2(dt: Double) {
+    func movePlayer2(_ dt: Double) {
         if player!.position.y < -CGFloat(playerPosition.i) * blockSize!.height - player!.frame.height / 2 {
             playerPosition.i += 1
             if kSpeed == 0.2 {
@@ -960,24 +1187,24 @@ class Maze {
             case 4: useSpeedRoad()
             case 6:
                 playTimer = false
-                NSTimer.scheduledTimerWithTimeInterval(4, target: self, selector: Selector("switchTimer"), userInfo: nil, repeats: false)
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
-                for (number, i) in stopTimers.enumerate() {
+                for (number, i) in stopTimers.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        stopTimers.removeAtIndex(number)
+                        stopTimers.remove(at: number)
                         break
                     }
                 }
             case 7:
                 inversion() //Инверсия
-                for (number, i) in arrayWithInversions.enumerate() {
+                for (number, i) in arrayWithInversions.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        arrayWithInversions.removeAtIndex(number)
+                        arrayWithInversions.remove(at: number)
                         break
                     }
-                }            case 20...999:
+                }            case 20...255:
                 break
             default: break
             }
@@ -988,7 +1215,7 @@ class Maze {
             teleportation()
         }
     }
-    func movePlayer3(dt: Double) {
+    func movePlayer3(_ dt: Double) {
         if player!.position.x < CGFloat(playerPosition.j) * blockSize!.width + player!.frame.width / 2 {
             playerPosition.j -= 1
             if kSpeed == 0.2 {
@@ -1003,24 +1230,24 @@ class Maze {
             case 5: useSpeedRoad()
             case 6:
                 playTimer = false
-                NSTimer.scheduledTimerWithTimeInterval(4, target: self, selector: Selector("switchTimer"), userInfo: nil, repeats: false)
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
-                for (number, i) in stopTimers.enumerate() {
+                for (number, i) in stopTimers.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        stopTimers.removeAtIndex(number)
+                        stopTimers.remove(at: number)
                         break
                     }
                 }
             case 7:
                 inversion() //Инверсия
-                for (number, i) in arrayWithInversions.enumerate() {
+                for (number, i) in arrayWithInversions.enumerated() {
                     if i.i == playerPosition.i && i.j == playerPosition.j {
                         i.0.removeFromParent()
-                        arrayWithInversions.removeAtIndex(number)
+                        arrayWithInversions.remove(at: number)
                         break
                     }
-                }            case 20...999:
+                }            case 20...255:
                 /*print(player!.position.y , willPlayerPosition.y)
                 if player!.position.x <= CGFloat(playerPosition.j) * blockSize!.width + player!.frame.width / 2 + playerSpeed! * CGFloat(dt) * kSpeed {
                     teleportation()
@@ -1036,7 +1263,188 @@ class Maze {
         }
     }
     
-    func addInversion(count: Int) {
+    
+    //Тупо движемся по направлению (соперник)
+    func moveRival0(_ dt: Double) {
+        if rivalPlayer!.position.y > -CGFloat(rivalPosition!.i) * blockSize!.height - player!.frame.height / 2 {
+            rivalPosition!.i -= 1
+            if kSpeed == 0.2 {
+                if maze![rivalPosition!.i][rivalPosition!.j] != 4 {
+                    kSpeed = 1
+                }
+            }
+            switch maze![rivalPosition!.i][rivalPosition!.j] {
+            case 2: useSpeedRoad()
+            case 4:
+                endUseSpeedRoad()
+                kSpeed = 0.2
+            case 6:
+                playTimer = false
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
+                maze![rivalPosition!.i][rivalPosition!.j] = 1
+                for (number, i) in stopTimers.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        stopTimers.remove(at: number)
+                        break
+                    }
+                }
+            case 7:
+                inversion() //Инверсия
+                for (number, i) in arrayWithInversions.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        arrayWithInversions.remove(at: number)
+                        break
+                    }
+                }
+            case 20...255:
+                break
+            default: break
+            }
+        }
+        rivalPlayer!.position.y += rivalSpeed! * CGFloat(dt) * kSpeed //kSpeed - коэффициент от ускорялки
+        
+        if rivalPlayer!.position.y >= willRivalPosition!.y && maze![rivalPosition!.i][rivalPosition!.j] >= 20 {
+            teleportation()
+        }
+    }
+    func moveRival1(_ dt: Double) {
+        if rivalPlayer!.position.x > CGFloat(rivalPosition!.j) * blockSize!.width + player!.frame.width / 2 {
+            rivalPosition!.j += 1
+            if kSpeed == 0.2 {
+                if maze![rivalPosition!.i][rivalPosition!.j] != 5 {
+                    kSpeed = 1
+                }
+            }
+            switch maze![rivalPosition!.i][rivalPosition!.j] {
+            case 3: useSpeedRoad()
+            case 5:
+                endUseSpeedRoad()
+                kSpeed = 0.2
+            case 6:
+                playTimer = false
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
+                maze![rivalPosition!.i][rivalPosition!.j] = 1
+                for (number, i) in stopTimers.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        stopTimers.remove(at: number)
+                        break
+                    }
+                }
+            case 7:
+                inversion() //Инверсия
+                for (number, i) in arrayWithInversions.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        arrayWithInversions.remove(at: number)
+                        break
+                    }
+                }
+            case 20...255:
+                break
+            default: break
+            }
+        }
+        rivalPlayer!.position.x += rivalSpeed! * CGFloat(dt) * kSpeed //kSpeed - коэффициент от ускорялки        
+        if rivalPlayer!.position.x >= willRivalPosition!.x && maze![rivalPosition!.i][rivalPosition!.j] >= 20 {
+            teleportation()
+        }
+    }
+    func moveRival2(_ dt: Double) {
+        if rivalPlayer!.position.y < -CGFloat(rivalPosition!.i) * blockSize!.height - player!.frame.height / 2 {
+            rivalPosition!.i += 1
+            if kSpeed == 0.2 {
+                if maze![rivalPosition!.i][rivalPosition!.j] != 2 {
+                    kSpeed = 1
+                }
+            }
+            switch maze![rivalPosition!.i][rivalPosition!.j] {
+            case 2:
+                endUseSpeedRoad()
+                kSpeed = 0.2
+            case 4: useSpeedRoad()
+            case 6:
+                playTimer = false
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
+                maze![rivalPosition!.i][rivalPosition!.j] = 1
+                for (number, i) in stopTimers.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        stopTimers.remove(at: number)
+                        break
+                    }
+                }
+            case 7:
+                inversion() //Инверсия
+                for (number, i) in arrayWithInversions.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        arrayWithInversions.remove(at: number)
+                        break
+                    }
+                }            case 20...255:
+                break
+            default: break
+            }
+        }
+        rivalPlayer!.position.y -= rivalSpeed! * CGFloat(dt) * kSpeed //kSpeed - коэффициент от ускорялки
+        
+        if rivalPlayer!.position.y <= willRivalPosition!.y && maze![rivalPosition!.i][rivalPosition!.j] >= 20 {
+            teleportation()
+        }
+    }
+    func moveRival3(_ dt: Double) {
+        if rivalPlayer!.position.x < CGFloat(rivalPosition!.j) * blockSize!.width + player!.frame.width / 2 {
+            rivalPosition!.j -= 1
+            if kSpeed == 0.2 {
+                if maze![rivalPosition!.i][rivalPosition!.j] != 3 {
+                    kSpeed = 1
+                }
+            }
+            switch maze![rivalPosition!.i][rivalPosition!.j] {
+            case 3:
+                endUseSpeedRoad()
+                kSpeed = 0.2
+            case 5: useSpeedRoad()
+            case 6:
+                playTimer = false
+                Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
+                maze![rivalPosition!.i][rivalPosition!.j] = 1
+                for (number, i) in stopTimers.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        stopTimers.remove(at: number)
+                        break
+                    }
+                }
+            case 7:
+                inversion() //Инверсия
+                for (number, i) in arrayWithInversions.enumerated() {
+                    if i.i == rivalPosition!.i && i.j == rivalPosition!.j {
+                        i.0.removeFromParent()
+                        arrayWithInversions.remove(at: number)
+                        break
+                    }
+                }            case 20...255:
+                    /*print(player!.position.y , willPlayerPosition.y)
+                     if player!.position.x <= CGFloat(playerPosition.j) * blockSize!.width + player!.frame.width / 2 + playerSpeed! * CGFloat(dt) * kSpeed {
+                     teleportation()
+                     }*/
+                break
+            default: break
+            }
+        }
+        rivalPlayer!.position.x -= rivalSpeed! * CGFloat(dt) * kSpeed //kSpeed - коэффициент от ускорялки
+        
+        if rivalPlayer!.position.x <= willRivalPosition!.x && maze![rivalPosition!.i][rivalPosition!.j] >= 20 {
+            teleportation()
+        }
+    }
+    
+    
+    func addInversion(_ count: Int) {
         for i in 0...count-1 {
             let invers = SKSpriteNode(imageNamed: "inversion")
             invers.name = "Invesion"
@@ -1044,8 +1452,8 @@ class Maze {
             invers.zPosition = 4
             var haveInversionBlock = false
             while !haveInversionBlock {
-                var randomI: Int = Int(random(min: 0, max: CGFloat(blockCount! - 1)))
-                var randomJ: Int = Int(random(min: 0, max: CGFloat(blockCount! - 1)))
+                let randomI: Int = Int(random(min: 0, max: CGFloat(blockCount! - 1)))
+                let randomJ: Int = Int(random(min: 0, max: CGFloat(blockCount! - 1)))
                 if maze![randomI][randomJ] == 1 {
                     maze![randomI][randomJ] = 7
                     invers.position = CGPoint(x: blockSize!.width * CGFloat(randomJ) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(randomI))
@@ -1058,12 +1466,12 @@ class Maze {
     }
     
     func inversion() {
-        bg!.color = SKColor.whiteColor()
-        mazeShape!.fillColor = SKColor.blackColor()
+        bg!.color = SKColor.white
+        mazeShape!.fillColor = SKColor.black
     }
     
     //Тут остановился. Надо расчитать длину пути смотрителя, чтобы он мог передвигаться по координатам (runAction)
-    func addWarders(count: Int) {
+    func addWarders(_ count: Int) {
         if warderVariants.count > 0 {
             for i in 0...count-1 {
                 let randomWarder = Int(random(min: 0, max: CGFloat(warderVariants.count)))
@@ -1103,7 +1511,7 @@ class Maze {
                 default: break
                 }
                 
-                let warder = SKSpriteNode(color: UIColor.orangeColor(), size: blockSize!)
+                let warder = SKSpriteNode(color: UIColor.orange, size: blockSize!)
                 warder.name = "warder"
                 warder.position = CGPoint(x: blockSize!.width * CGFloat(warderVariants[randomWarder].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(warderVariants[randomWarder].i))
                 warder.zPosition = 6
@@ -1111,17 +1519,17 @@ class Maze {
                 
                 //Тут заставляем его двигаться (туда и обратно, так вечно)
                 switch warderVariants[randomWarder].direction {
-                case 0: warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveBy(CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveBy(CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                case 0: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 case 1: print("Вправо")
-                    warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveByX(CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveByX(-CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
-                case 2: warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveBy(CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveBy(CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
+                case 2: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 case 3: print("Влево")
-                    warder.runAction(SKAction.repeatActionForever(SKAction.sequence([SKAction.moveByX(-CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8), SKAction.moveByX(CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.waitForDuration(0.8)])))
+                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 default: break
                 }
                 //warder.runAction(SKAction.repeatActionForever(SKAction.sequence([])))
                 
-                warderVariants.removeAtIndex(randomWarder)
+                warderVariants.remove(at: randomWarder)
             }
         } else {
             print("fail")
@@ -1134,16 +1542,19 @@ class Maze {
     // 2 - взяли монетку
     func checkCollisions() -> Int {
         var result = 0
-        bg!.enumerateChildNodesWithName("warder") { node, _ in
+        bg!.enumerateChildNodes(withName: "warder") { node, _ in
             let ward = node as! SKSpriteNode
-            if CGRectIntersectsRect(self.player!.frame, ward.frame) {
+            if self.player!.frame.intersects(ward.frame) {
                 result = 1
             }
         }
-        bg!.enumerateChildNodesWithName("coin") { node, _ in
+        bg!.enumerateChildNodes(withName: "coin") { node, _ in
             let coin = node as! SKSpriteNode
-            if CGRectIntersectsRect(self.player!.frame, coin.frame) {
-                coin.removeFromParent()
+            //Тут остановился, берёт вместо 1 монеты несколько
+            if self.player!.frame.intersects(coin.frame) {
+                coin.name = "oldCoin" //Меняем название, чтобы пока монетка уменьшается, мы её мнова не подобрали
+                coin.run(SKAction.sequence([SKAction.scale(to: 0.0, duration: 0.3), SKAction.run({coin.removeFromParent()})]))
+                //Музыка, когда подобрали монетку
                 result = 2
             }
         }

@@ -11,7 +11,7 @@ import SpriteKit
 
 import GameKit
 import AVFoundation
-func random(min min: CGFloat, max: CGFloat) -> CGFloat {
+func random(min: CGFloat, max: CGFloat) -> CGFloat {
     assert(min <= max)
     return CGFloat(Float(arc4random()) / Float(UInt32.max)) * (max - min) + min
 }
@@ -20,18 +20,19 @@ class GameViewController: UIViewController {
     weak var scrollView: UIScrollView!
     //@IBOutlet weak var scrollView: UIScrollView!
     //var scrollView: UIScrollView!
+    @IBOutlet weak var loadingView: UIView! //Для экрана загрузки мультиплеера
     
     var backgroundMusicPlayer: AVAudioPlayer!
 
     override func viewDidLoad() {
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "gameModeOn", name: "game mode On", object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "gameModeOff", name: "game mode Off", object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOn), name: NSNotification.Name("game mode On"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOff), name: NSNotification.Name("game mode Off"), object: nil)
         
         let settingsVC = SettingsViewController()
         
         self.addChildViewController(settingsVC)
         scrollView.addSubview(settingsVC.view)
-        settingsVC.didMoveToParentViewController(self)
+        settingsVC.didMove(toParentViewController: self)
         
         //var frameSettings = settingsVC.view.frame
         //var frameSettings = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: settingsVC.view.frame.width, height: settingsVC.view.frame.height))
@@ -43,28 +44,29 @@ class GameViewController: UIViewController {
         
         self.addChildViewController(competitiveVC)
         scrollView.addSubview(competitiveVC.view)
-        competitiveVC.didMoveToParentViewController(self)
+        competitiveVC.didMove(toParentViewController: self)
         
-        var frameCompetitive = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: competitiveVC.view.frame.width, height: competitiveVC.view.frame.height))
+        let frameCompetitive = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: competitiveVC.view.frame.width, height: competitiveVC.view.frame.height))
         competitiveVC.view.frame = frameCompetitive
         
         
         let freeVC = FreeViewController()
         
+        freeVC.loadingView = loadingView
         self.addChildViewController(freeVC)
         scrollView.addSubview(freeVC.view)
-        freeVC.didMoveToParentViewController(self)
+        freeVC.didMove(toParentViewController: self)
         
-        var frameFree = CGRect(origin: CGPoint(x: self.view.frame.size.width * 2, y: 0), size: CGSize(width: freeVC.view.frame.width, height: freeVC.view.frame.height))
+        let frameFree = CGRect(origin: CGPoint(x: self.view.frame.size.width * 2, y: 0), size: CGSize(width: freeVC.view.frame.width, height: freeVC.view.frame.height))
         freeVC.view.frame = frameFree
         
         
-        scrollView.contentSize = CGSizeMake(self.view.frame.size.width * 3, self.view.frame.size.height) //Задаём длину нашей прокрутки
+        scrollView.contentSize = CGSize(width: self.view.frame.size.width * 3, height: self.view.frame.size.height) //Задаём длину нашей прокрутки
         scrollView.contentOffset.x = self.view.frame.size.width //Делаем, чтобы сначала показывался второй экран, а не первый
         //scrollView.contentOffset.x = self.view.frame.size.width * 2 //Делаем, чтобы сначала показывался третий экран, а не первый
         
         //self.scrollView.setContentOffset(self.scrollView.contentOffset, animated: true)
-        scrollView.scrollEnabled = true //Перестаёт перелистывать сцены
+        scrollView.isScrollEnabled = true //Перестаёт перелистывать сцены
         //self.scrollView.directionalLockEnabled = true
         //self.scrollView.canCancelContentTouches = true
         //self.scrollView.delaysContentTouches = true
@@ -93,19 +95,19 @@ class GameViewController: UIViewController {
         default: break
         }*/
         //playBackgroundMusic("20_dollars_in_my_pocket.mp3")//
-        
+                
         authenticateLocalPlayer()
     }
     
     func gameModeOn() {
-        scrollView.scrollEnabled = false //Перестаёт перелистывать сцены
+        scrollView.isScrollEnabled = false //Перестаёт перелистывать сцены
     }
     func gameModeOff() {
-        scrollView.scrollEnabled = true //Перестаёт перелистывать сцены
+        scrollView.isScrollEnabled = true //Перестаёт перелистывать сцены
     }
     
-    func playBackgroundMusic(filename: String) {
-        let url = NSBundle.mainBundle().URLForResource(
+    /*func playBackgroundMusic(_ filename: String) {
+        let url = Bundle.main.urlForResource(
             filename, withExtension: nil)
         if (url == nil) {
             print("Could not find file: \(filename)")
@@ -115,7 +117,7 @@ class GameViewController: UIViewController {
         var error: NSError? = nil
         do {
             backgroundMusicPlayer =
-                try AVAudioPlayer(contentsOfURL: url!)
+                try AVAudioPlayer(contentsOf: url!)
         } catch let error1 as NSError {
             error = error1
             backgroundMusicPlayer = nil
@@ -128,26 +130,27 @@ class GameViewController: UIViewController {
         backgroundMusicPlayer.numberOfLoops = -1
         backgroundMusicPlayer.prepareToPlay()
         backgroundMusicPlayer.play()
-    }
+    }*/
 
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate: Bool {
         return true
     }
 
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        if UIDevice.currentDevice().userInterfaceIdiom == .Phone {
-            return .AllButUpsideDown
+    override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        if UIDevice.current.userInterfaceIdiom == .phone {
+            return .allButUpsideDown
         } else {
-            return .All
+            return .all
         }
     }
+    
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Release any cached data, images, etc that aren't in use.
     }
 
-    override func prefersStatusBarHidden() -> Bool {
+    override var prefersStatusBarHidden: Bool {
         return true
     }
     
@@ -155,16 +158,16 @@ class GameViewController: UIViewController {
     //initiate gamecenter
     func authenticateLocalPlayer() {
         
-        var localPlayer = GKLocalPlayer.localPlayer()
+        let localPlayer = GKLocalPlayer.localPlayer()
         
         localPlayer.authenticateHandler = {(viewController, error) -> Void in
             
             if (viewController != nil) {
-                self.presentViewController(viewController!, animated: true, completion: nil)
+                self.present(viewController!, animated: true, completion: nil)
             }
                 
             else {
-                print((GKLocalPlayer.localPlayer().authenticated))
+                print((GKLocalPlayer.localPlayer().isAuthenticated))
             }
         }
     }

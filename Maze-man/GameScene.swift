@@ -8,6 +8,7 @@
 
 import SpriteKit
 import GameKit
+import SystemConfiguration
 
 let Pi = CGFloat(M_PI)
 
@@ -16,8 +17,8 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
     var leadersButton = SKSpriteNode(imageNamed: "leadersButton")
     var settingsButton = SKSpriteNode(imageNamed: "settingsButton")
     var logo = SKSpriteNode(imageNamed: "logo")
-    override func didMoveToView(view: SKView) {
-        NSNotificationCenter.defaultCenter().postNotificationName("game mode Off", object: self)
+    override func didMove(to view: SKView) {
+        NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
         
         backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         
@@ -37,9 +38,9 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
         logo.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 + 250)
         addChild(logo)
     }
-    override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
-            let location = touch.locationInNode(self)
+            let location = touch.location(in: self)
             /*if nodeAtPoint(location) == playButton {
                 let competitiveScene = Competitive(size: size)
                 competitiveScene.scaleMode = scaleMode
@@ -51,7 +52,7 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
                     self.view!.presentScene(settingsScene)
                 }
             }*/
-            switch nodeAtPoint(location) {
+            switch atPoint(location) {
             case playButton:
                 let competitiveScene = Competitive(size: size)
                 competitiveScene.scaleMode = scaleMode
@@ -70,16 +71,16 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
     
     //shows leaderboard screen
     func showLeader() {
-        var vc = self.view?.window?.rootViewController
-        var gc = GKGameCenterViewController()
+        let vc = self.view?.window?.rootViewController
+        let gc = GKGameCenterViewController()
         gc.gameCenterDelegate = self
-        vc?.presentViewController(gc, animated: true, completion: nil)
+        vc?.present(gc, animated: true, completion: nil)
     }
     
     //hides leaderboard screen
-    func gameCenterViewControllerDidFinish(gameCenterViewController: GKGameCenterViewController!)
+    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController!)
     {
-        gameCenterViewController.dismissViewControllerAnimated(true, completion: nil)
+        gameCenterViewController.dismiss(animated: true, completion: nil)
         
     }
 }
