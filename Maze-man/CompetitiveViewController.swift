@@ -15,6 +15,8 @@ class CompetitiveViewController: UIViewController {
         //self.view = SKView(frame: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 320, height: 640)))
     }
     
+    var scene: Competitive?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         let skView = self.view as! SKView
@@ -22,13 +24,13 @@ class CompetitiveViewController: UIViewController {
         size.width *= 2
         size.height *= 2
         //let scene = GameScene(size: size)
-        let scene = Competitive(size: size)
+        scene = Competitive(size: size)
         skView.showsFPS = true
         skView.showsNodeCount = true
         skView.ignoresSiblingOrder = true
         skView.showsPhysics = false
-        scene.scaleMode = .aspectFill
-        skView.presentScene(scene)
+        scene!.scaleMode = .aspectFill
+        skView.presentScene(scene!)
         
         //super.scrollView.scrollEnabled = false
         // Do any additional setup after loading the view.

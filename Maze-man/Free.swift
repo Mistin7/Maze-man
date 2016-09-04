@@ -298,7 +298,8 @@ class Free: SKScene {
             switch atPoint(location) {
             case playButton:
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "mult player"), object: self)
-            case exitButton!: break
+            case exitButton!: //break
+                match!.disconnect()
                 //При нажатии на эту кнопку должно поялвяться окно с уточнением
                 /*if stopPlaying {
                     stopPlaying = false
@@ -454,7 +455,7 @@ class Free: SKScene {
         exitButton!.size = CGSize(width: 60, height: 60)
         exitButton!.position = CGPoint(x: size.width - 80, y: size.height - 60)
         exitButton!.zPosition = 99
-        bgBasic!.addChild(exitButton!)
+        addChild(exitButton!)
     }
     
     func addWinnerBg() {

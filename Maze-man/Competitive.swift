@@ -48,6 +48,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     let cropNode = SKCropNode() //Для отображения полосы уровня
     var lvlLineMask = SKSpriteNode() //Через неё видна полоса лвл-а
     var countLvlUp: Int = 0 //Сколько лвл поднимает пользователь (для progressBar)
+    var filmButton: SKSpriteNode?
     
     //
     var dtWithLvlLine: CGFloat?
@@ -244,6 +245,8 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                 makeMaze()
             case leadersButton:
                 showLeader()
+            case filmButton!:
+                print("Плеер хочет посмореть видео за 25 монет")
             default:
                 oldFingerPosition = location
                 resolution = true
@@ -452,6 +455,13 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         cropNode.maskNode = lvlLineMask
         cropNode.position = CGPoint(x: 0, y: 0)
         bgLvlLine!.addChild(cropNode)
+        
+        filmButton = SKSpriteNode(imageNamed: "film-button")
+        filmButton!.position = CGPoint(x: 160, y: 300)
+        filmButton!.zPosition = 100
+        filmButton!.size = CGSize(width: 166, height: 75)
+        filmButton!.zRotation = Pi * 1.96
+        resultBg?.addChild(filmButton!)
     }
     
     func addBg() {
@@ -465,10 +475,12 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         let coinIcon = SKSpriteNode(imageNamed: "coin")
         coinIcon.size = CGSize(width: 50, height: 50)
         coinIcon.position = CGPoint(x: 70, y: 70)
+        coinIcon.zPosition = 99
         addChild(coinIcon)
         
         coinsCountLabel.text = "\(defaults.integer(forKey: "coins")) coins"
-        coinsCountLabel.position = CGPoint(x: 160, y: 57)
+        coinsCountLabel.position = CGPoint(x: 100, y: 57)
+        coinsCountLabel.horizontalAlignmentMode = .left
         coinsCountLabel.fontColor = SKColor.white
         coinsCountLabel.fontSize = 34
         coinsCountLabel.fontName = "Chalkboard SE Bold"

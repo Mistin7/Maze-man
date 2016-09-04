@@ -20,6 +20,8 @@ class Settings: SKScene {
     var speedLineMask = SKSpriteNode() //Через неё видна полоса скорости
     let statsPrice: [Int] = [15,25,40,65,90,120,160,210,260,320,400,600,950,1500,3000,5000,8000,12000,17000,25000] //Сколько стоят уровни соответственно
     
+    var filmButton: SKSpriteNode?
+    
     var soundButton = SKSpriteNode(imageNamed: "soundOn")
     let defaults = UserDefaults.standard
     override func didMove(to view: SKView) {
@@ -84,6 +86,11 @@ class Settings: SKScene {
         addChild(soundButton)
         
         print(size)
+        
+        filmButton = SKSpriteNode(imageNamed: "film-button")
+        filmButton!.position = CGPoint(x: 0, y: -200)
+        filmButton!.size = CGSize(width: 249, height: 112)
+        statsBg.addChild(filmButton!)
     }
     override init(size: CGSize) {
         super.init(size: size)
@@ -106,6 +113,8 @@ class Settings: SKScene {
                 }
             case speedImproveButton:
                 plusSpeed()
+            case filmButton!:
+                print("Плеер хочет посмореть видео за 25 монет")
             default: break
             }
         }
@@ -130,6 +139,8 @@ class Settings: SKScene {
                 defaults.set(defaults.integer(forKey: "speed") + 5, forKey: "speed") //Повышаем в памяти его скорость
                 speedLineMask.position.x += 18 //на один шаг (полоску)
                 speedCost.text = String(statsPrice[defaults.integer(forKey: "speed") / 5]) //Изменяем стоимость на кнопочке
+                
+                NotificationCenter.default.post(name: Notification.Name(rawValue: "changed coins count"), object: self) //Чтобы изменилась надпись с ко-вом монет в competitive
             } else { //Если не хватает монет на улучшение
                 print("У Вас не хватает", statsPrice[defaults.integer(forKey: "speed") / 5] - defaults.integer(forKey: "coins"), "монет на улучшение")
             }

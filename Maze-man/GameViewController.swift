@@ -23,16 +23,21 @@ class GameViewController: UIViewController {
     @IBOutlet weak var loadingView: UIView! //Для экрана загрузки мультиплеера
     
     var backgroundMusicPlayer: AVAudioPlayer!
+    
+    var settingsVC: SettingsViewController?
+    var competitiveVC: CompetitiveViewController?
+    var freeVC: FreeViewController?
 
     override func viewDidLoad() {
         NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOn), name: NSNotification.Name("game mode On"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOff), name: NSNotification.Name("game mode Off"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.changedCoinsCount), name: NSNotification.Name("changed coins count"), object: nil)
         
-        let settingsVC = SettingsViewController()
+        settingsVC = SettingsViewController()
         
-        self.addChildViewController(settingsVC)
-        scrollView.addSubview(settingsVC.view)
-        settingsVC.didMove(toParentViewController: self)
+        self.addChildViewController(settingsVC!)
+        scrollView.addSubview(settingsVC!.view)
+        settingsVC!.didMove(toParentViewController: self)
         
         //var frameSettings = settingsVC.view.frame
         //var frameSettings = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: settingsVC.view.frame.width, height: settingsVC.view.frame.height))
@@ -40,25 +45,25 @@ class GameViewController: UIViewController {
         //settingsVC.view.frame = frameSettings
         
         
-        let competitiveVC = CompetitiveViewController()
+        competitiveVC = CompetitiveViewController()
         
-        self.addChildViewController(competitiveVC)
-        scrollView.addSubview(competitiveVC.view)
-        competitiveVC.didMove(toParentViewController: self)
+        self.addChildViewController(competitiveVC!)
+        scrollView.addSubview(competitiveVC!.view)
+        competitiveVC!.didMove(toParentViewController: self)
         
-        let frameCompetitive = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: competitiveVC.view.frame.width, height: competitiveVC.view.frame.height))
-        competitiveVC.view.frame = frameCompetitive
+        let frameCompetitive = CGRect(origin: CGPoint(x: self.view.frame.size.width, y: 0), size: CGSize(width: competitiveVC!.view.frame.width, height: competitiveVC!.view.frame.height))
+        competitiveVC!.view.frame = frameCompetitive
         
         
-        let freeVC = FreeViewController()
+        freeVC = FreeViewController()
         
-        freeVC.loadingView = loadingView
-        self.addChildViewController(freeVC)
-        scrollView.addSubview(freeVC.view)
-        freeVC.didMove(toParentViewController: self)
+        freeVC!.loadingView = loadingView
+        self.addChildViewController(freeVC!)
+        scrollView.addSubview(freeVC!.view)
+        freeVC!.didMove(toParentViewController: self)
         
-        let frameFree = CGRect(origin: CGPoint(x: self.view.frame.size.width * 2, y: 0), size: CGSize(width: freeVC.view.frame.width, height: freeVC.view.frame.height))
-        freeVC.view.frame = frameFree
+        let frameFree = CGRect(origin: CGPoint(x: self.view.frame.size.width * 2, y: 0), size: CGSize(width: freeVC!.view.frame.width, height: freeVC!.view.frame.height))
+        freeVC!.view.frame = frameFree
         
         
         scrollView.contentSize = CGSize(width: self.view.frame.size.width * 3, height: self.view.frame.size.height) //Задаём длину нашей прокрутки
@@ -104,6 +109,9 @@ class GameViewController: UIViewController {
     }
     func gameModeOff() {
         scrollView.isScrollEnabled = true //Перестаёт перелистывать сцены
+    }
+    func changedCoinsCount() {
+        competitiveVC!.scene!.coinsCountLabel.text = "\(competitiveVC!.scene!.defaults.integer(forKey: "coins")) coins"
     }
     
     /*func playBackgroundMusic(_ filename: String) {
