@@ -101,6 +101,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             scene!.bgBasic?.removeFromParent()
             scene!.upperLayer!.position.y = scene!.size.height / 2
             scene!.upperLayer!.isHidden = false
+            scene!.exitButton!.isHidden = true
             NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
         default: break
         }
@@ -146,6 +147,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             if scene!.upperLayer!.isHidden == false {
                 scene!.upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
                     self.scene!.upperLayer!.isHidden = true
+                    self.scene!.exitButton!.isHidden = false
                     self.scene!.stopPlaying = false
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
                 })]))

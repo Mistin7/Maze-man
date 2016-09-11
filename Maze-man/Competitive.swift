@@ -143,6 +143,8 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
             case 2:
                 defaults.set(defaults.integer(forKey: "coins") + 1, forKey: "coins")
                 coinsCountLabel.text = "\(defaults.integer(forKey: "coins")) coins"
+                //Музыка, когда подобрали монетку
+                run(SKAction.playSoundFileNamed("sounds/coin.mp3", waitForCompletion: false))
                 break
             default: break
             }
@@ -342,12 +344,14 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         
         let dtWithLvlLine2 = dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * self.lvlLine!.size.width
         //var dtPoints: CGFloat = CGFloat(3.5/count) //Сколько плеер поднял процентов/100 за раунд
-        //Тут остановился
         if countLvlUp == 0 {
-            lvlLineMask.run(SKAction.moveBy(x: dtWithLvlLine!, y: 0, duration: 1))
+            lvlLineMask.run(SKAction.sequence([
+                SKAction.wait(forDuration: 1.5),
+                SKAction.moveBy(x: dtWithLvlLine!, y: 0, duration: 1)
+            ]))
         } else if countLvlUp == 1 {
             lvlLineMask.run(SKAction.sequence([
-                SKAction.wait(forDuration: 1),
+                SKAction.wait(forDuration: 1.5),
                 SKAction.moveBy(x: lvlLine!.size.width - CGFloat(defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * lvlLine!.size.width, y: 0, duration: 2),
                 SKAction.run({
                     self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
@@ -356,13 +360,13 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     print("lvlUp")
                     //print(self.dtWithLvlLine!)
                 }),
-                SKAction.wait(forDuration: 1),
+                SKAction.wait(forDuration: 1.5),
                 //SKAction.moveByX(self.dtWithLvlLine!, y: 0, duration: 2)
                 SKAction.moveBy(x: dtWithLvlLine2, y: 0, duration: 2)
                 ]))
         } else if countLvlUp > 1 {
             lvlLineMask.run(SKAction.sequence([
-                SKAction.wait(forDuration: 1),
+                SKAction.wait(forDuration: 1.5),
                 SKAction.moveBy(x: lvlLine!.size.width - CGFloat(defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * lvlLine!.size.width, y: 0, duration: 2),
                 SKAction.run({
                     self.lvlLineMask.position.x = -self.lvlLine!.size.width * 1.5
@@ -375,7 +379,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                         self.dtWithLvlLine! -= self.lvlLine!.size.width
                     })
                     ]), count: countLvlUp - 2),
-                SKAction.wait(forDuration: 2),
+                SKAction.wait(forDuration: 1.5),
                 SKAction.moveBy(x: self.dtWithLvlLine!, y: 0, duration: 2)
                 ]))
         }

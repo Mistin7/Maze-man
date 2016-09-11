@@ -754,19 +754,21 @@ class Maze {
     // Добавляем телепорт
     func addTeleport(_ numberTeleports: Int) {
         addDeadLocks() //Заполняем массив с тупиками
-        for i in 0...numberTeleports-1 {
-            var randomDeadLockForTP: Int
-            repeat {
-                randomDeadLockForTP = Int(random(min: 0, max: CGFloat(deadLocks.count)))
-            } while maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] != 1
-            maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] = UInt8(20 + i)
-            arrayWithTP.append((teleport: SKShapeNode(rectOf: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
-            arrayWithTP[i].teleport.fillColor = fillColorTP(i)
-            arrayWithTP[i].teleport.lineWidth = 0.0
-            arrayWithTP[i].teleport.position = CGPoint(x: blockSize!.width * CGFloat(deadLocks[randomDeadLockForTP].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(deadLocks[randomDeadLockForTP].i))
-            arrayWithTP[i].teleport.zPosition = 3
-            deadLocks.remove(at: randomDeadLockForTP)
-            bg!.addChild(arrayWithTP[i].teleport)
+        if deadLocks.count >= numberTeleports { //Если тупиков меньше, чем должно быть телепортов, то вообще не добавляем тп
+            for i in 0...numberTeleports-1 {
+                var randomDeadLockForTP: Int
+                repeat {
+                    randomDeadLockForTP = Int(random(min: 0, max: CGFloat(deadLocks.count)))
+                } while maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] != 1
+                maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] = UInt8(20 + i)
+                arrayWithTP.append((teleport: SKShapeNode(rectOf: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
+                arrayWithTP[i].teleport.fillColor = fillColorTP(i)
+                arrayWithTP[i].teleport.lineWidth = 0.0
+                arrayWithTP[i].teleport.position = CGPoint(x: blockSize!.width * CGFloat(deadLocks[randomDeadLockForTP].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(deadLocks[randomDeadLockForTP].i))
+                arrayWithTP[i].teleport.zPosition = 3
+                deadLocks.remove(at: randomDeadLockForTP)
+                bg!.addChild(arrayWithTP[i].teleport)
+            }
         }
     }
     //добавляем цвет телепортам
@@ -1470,7 +1472,6 @@ class Maze {
         mazeShape!.fillColor = SKColor.black
     }
     
-    //Тут остановился. Надо расчитать длину пути смотрителя, чтобы он мог передвигаться по координатам (runAction)
     func addWarders(_ count: Int) {
         if warderVariants.count > 0 {
             for i in 0...count-1 {
@@ -1510,7 +1511,9 @@ class Maze {
                     }
                 default: break
                 }
-                
+                if warderVariants[randomWarder].i == startBlockPosition.i && warderVariants[randomWarder].j == startBlockPosition.j { //Если смотритель стартует с точки старта плеера, то не добавляем его
+                    break
+                }
                 let warder = SKSpriteNode(color: UIColor.orange, size: blockSize!)
                 warder.name = "warder"
                 warder.position = CGPoint(x: blockSize!.width * CGFloat(warderVariants[randomWarder].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(warderVariants[randomWarder].i))
@@ -1532,7 +1535,7 @@ class Maze {
                 warderVariants.remove(at: randomWarder)
             }
         } else {
-            print("fail")
+            print("No warders")
         }
     }
     

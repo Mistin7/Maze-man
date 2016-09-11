@@ -563,6 +563,7 @@ class Free: SKScene {
         if upperLayer!.isHidden == false {
             upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
                 self.upperLayer!.isHidden = true
+                self.exitButton!.isHidden = false
                 self.stopPlaying = false
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
             })]))
