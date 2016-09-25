@@ -27,7 +27,7 @@ class Settings: SKScene {
     
     let defaults = UserDefaults.standard
     override func didMove(to view: SKView) {
-        print("settings scene")
+        //print("settings scene")
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         
         //Всё для характеристик
@@ -80,7 +80,7 @@ class Settings: SKScene {
         speedCost.zPosition = 10
         speedImproveButton.addChild(speedCost)
         
-        print(size)
+        //print(size)
         
         //Добавляем различную озвучку
         clickSound = SKAction.playSoundFileNamed("sounds/click.mp3", waitForCompletion: false)

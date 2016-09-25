@@ -316,10 +316,10 @@ class Free: SKScene {
                 }
                 //чтобы я мог только один раз нажать на эту кнопку
                 if match!.players.count == 0 {
-                    print("Соперник отключился, мы не можем больше с ним сыграть")
+                    //print("Соперник отключился, мы не можем больше с ним сыграть")
                 } else {
                     if !iWantPlayMore  {
-                        print("Хочу ещё сыграть (с тем же)")
+                        //print("Хочу ещё сыграть (с тем же)")
                         iWantPlayMore = true
                         iAmWinner = false
                         if rivalWantPlayMore == true { //Если соперник уже тоже хочет
@@ -344,8 +344,8 @@ class Free: SKScene {
                             } catch {
                                 print("Some error in sendData")
                             }
-                            print("Запрос на ещё одну игру отправлен")
-                            print("Ждём подтверждения второго игрока")
+                            //print("Запрос на ещё одну игру отправлен")
+                            //print("Ждём подтверждения второго игрока")
                             infoLabel!.isHidden = false
                             infoLabel!.text = "Запрос отправлен. Ждём ответа " + self.match!.players[0].displayName! + "."
                             infoLabel!.fontColor = UIColor.gray
@@ -427,7 +427,7 @@ class Free: SKScene {
     }
     
     func weOnFinish() {
-        print("We on FINISH!")
+        //print("We on FINISH!")
         rivalWantPlayMore = nil //Обнуляем данные
         iWantPlayMore = false
         stopPlaying = true //Останавливаем игру, мы же на финише)
@@ -548,9 +548,9 @@ class Free: SKScene {
         } catch {
             print("Some error in sendData")
         }
-        print("Массив с лабиринтом отправлен")
+        //print("Массив с лабиринтом отправлен")
         //Когда второй раз решаем сыграть надо чтобы haveMaze снова стал true
-        print("Лабиринт построен")
+        //print("Лабиринт построен")
         maze!.startForMultiGame() //Отправляем свой скин и скорость сопернику, также прорисоываем у себя лабиринт
         if bgBasic == nil {
             addBg()

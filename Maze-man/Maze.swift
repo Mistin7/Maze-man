@@ -98,7 +98,7 @@ class Maze {
         playerAnimation = SKAction.repeatForever(SKAction.animate(with: playerTextures, timePerFrame: 0.3))
         
         if competitiveMod {
-            print("CompetitiveMod")
+            //print("CompetitiveMod")
             
             generateMaze()
             addBg()
@@ -124,7 +124,7 @@ class Maze {
             if warders > 0 { addWarders(warders) }
             addCoins()
         } else {
-            print("FreeMod")
+            //print("FreeMod")
             
             addBg()
             
@@ -149,7 +149,7 @@ class Maze {
         }
         //Считается что массив с лабиринтом уже есть
         //Дальше идёт прорисовка
-        printMaze()
+        //printMaze()
         generateShape2()
         startAndFinishBlocks()
     }
@@ -193,7 +193,7 @@ class Maze {
         case 0:
             player!.zRotation = Pi/2
             if maze![playerPosition.i - 1][playerPosition.j] != 0 {
-                print("q0")
+                //print("q0")
                 qweq = 0
                 qwew = 0
                 qwee = 0
@@ -210,7 +210,7 @@ class Maze {
         case 1:
             player!.zRotation = 0
             if maze![playerPosition.i][playerPosition.j + 1] != 0 {
-                print("q1")
+                //print("q1")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -226,7 +226,7 @@ class Maze {
         case 2:
             player!.zRotation = -Pi/2
             if maze![playerPosition.i + 1][playerPosition.j] != 0 {
-                print("q2")
+                //print("q2")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -240,7 +240,7 @@ class Maze {
         case 3:
             player!.zRotation = Pi
             if maze![playerPosition.i][playerPosition.j - 1] != 0 {
-                print("q3")
+                //print("q3")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -288,7 +288,7 @@ class Maze {
         case 1:
             rivalPlayer!.zRotation = 0
             if maze![rivalPosition!.i][rivalPosition!.j + 1] != 0 {
-                print("q1")
+                //print("q1")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -304,7 +304,7 @@ class Maze {
         case 2:
             rivalPlayer!.zRotation = -Pi/2
             if maze![rivalPosition!.i + 1][rivalPosition!.j] != 0 {
-                print("q2")
+                //print("q2")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -317,7 +317,7 @@ class Maze {
         case 3:
             rivalPlayer!.zRotation = Pi
             if maze![rivalPosition!.i][rivalPosition!.j - 1] != 0 {
-                print("q3")
+                //print("q3")
                 qweq = 0; qwew = 0; qwee = 0
                 repeat {
                     count += 1
@@ -1026,7 +1026,7 @@ class Maze {
         if defaults.bool(forKey: "sound") {
             bg!.run(tpSound!)
         }
-        print(defaults.bool(forKey: "sound"))
+        //print(defaults.bool(forKey: "sound"))
         if (maze![playerPosition.i][playerPosition.j] % 2) == 0 {
             player!.position = arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].teleport.position
             teleportExit(arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].i, j: arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].j)
@@ -1551,10 +1551,10 @@ class Maze {
                 //Тут заставляем его двигаться (туда и обратно, так вечно)
                 switch warderVariants[randomWarder].direction {
                 case 0: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 0.5}), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 1.5}), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
-                case 1: print("Вправо")
+                case 1: //print("Вправо")
                     warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 0}), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 1}), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 case 2: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 1.5}), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 0.5}), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
-                case 3: print("Влево")
+                case 3: //print("Влево")
                     warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 1}), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 0}), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 default: break
                 }

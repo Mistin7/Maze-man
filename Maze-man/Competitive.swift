@@ -346,7 +346,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         }
     }
     func weOnFinish() {
-        print("You won")
+        //print("You won")
         timer.invalidate()
         /*if count < defaults.double(forKey: "bestTime") || defaults.double(forKey: "bestTime") == 0.0 {
             defaults.set(count, forKey: "bestTime")
@@ -360,7 +360,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     }
     
     func weLosed() {
-        print("You losed!")
+        //print("You losed!")
         timer.invalidate()
         countLvlUp = 0
         showResultBg(false)
@@ -408,7 +408,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     self.lvlFeatures(lvl: Int(self.defaults.integer(forKey: "points") / 100)) //Когда подняли уровень, появляется описание его открытий
                     self.currentLvl.text = "\(Int(self.defaults.integer(forKey: "points") / 100)) lvl"
                     self.nextLvl.text = "\(Int(self.defaults.integer(forKey: "points") / 100) + 1) lvl"
-                    print("lvlUp")
+                    //print("lvlUp")
                 }),
                 SKAction.wait(forDuration: 1.5),
                 SKAction.moveBy(x: dtWithLvlLine2, y: 0, duration: 2)

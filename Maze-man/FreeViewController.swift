@@ -51,12 +51,11 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     
     //Вызываем окно для поиска игроков в мультиплеере
     func mPlayer() {
-        print("12345")
         let asd: GKMatchRequest = GKMatchRequest()
         asd.minPlayers = 2
         asd.maxPlayers = 2
         asd.defaultNumberOfPlayers = 2
-        asd.inviteMessage = "Привет. Го катать!"
+        asd.inviteMessage = "Привет. Сыграем в Maze-man?"
         
         matchmakerViewController = GKMatchmakerViewController(matchRequest: asd)
         matchmakerViewController!.matchmakerDelegate = self
@@ -64,7 +63,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     }
   
     func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) { //Когда отменяем поиск
-        print("Убираем это окно")
+        //print("Убираем это окно")
         viewController.dismiss(animated: true, completion: nil)
         viewController.navigationController?.popViewController(animated: true)
     }
@@ -89,7 +88,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                     scene!.rivalName = player.displayName!
                 }
             }
-            print("Играем!!!")
+            //print("Играем!!!")
         }
     }
     
@@ -99,14 +98,14 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             print(player.displayName, " подключился к игре")
         case GKPlayerConnectionState.stateDisconnected:
             if scene!.iLeft {
-                print("Я покинул игру (и проиграл)")
+                //print("Я покинул игру (и проиграл)")
                 scene!.upperLayer!.position = CGPoint(x: scene!.size.width / 2, y: scene!.size.height / 2)
                 scene!.upperLayer!.isHidden = false
                 scene!.bgBasic?.removeFromParent()
                 scene!.exitButton.isHidden = true
                 scene!.winnerBg?.isHidden = true
             } else {
-                print(player.displayName!, " отключился")
+                //print(player.displayName!, " отключился")
                 scene!.iAmWinner = true
                 scene!.showWinnerBg() //Показываем экран с победителем
                 //Показываем статус, что противник отключился
@@ -128,11 +127,11 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             var receivedMaze: [UInt8] = [UInt8](repeating: 0, count: scene!.maze!.blockCount! * scene!.maze!.blockCount!)
             let dataa: Data = data as Data
             dataa.copyBytes(to: &receivedMaze, count: scene!.maze!.blockCount! * scene!.maze!.blockCount!)
-            print("Массив с лабиринтом принят")
+            //print("Массив с лабиринтом принят")
             haveMaze = true
-            print("Лабиринт построен")
-            print(receivedMaze)
-            print(receivedMaze.count)
+            //print("Лабиринт построен")
+            //print(receivedMaze)
+            //print(receivedMaze.count)
             scene!.maze!.maze!.removeAll()
             scene!.maze!.maze = []
             for i in 0..<receivedMaze.count {
@@ -141,7 +140,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                 }
                 scene!.maze!.maze![i / scene!.maze!.blockCount!] += [receivedMaze[i]]
             }
-            scene!.maze!.printMaze()
+            //scene!.maze!.printMaze()
             scene!.maze!.startForMultiGame()
             if scene!.bgBasic == nil {
                 scene!.addBg()
@@ -172,25 +171,25 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             scene!.maze!.rivalSpeedK = CGFloat(receivedPocket[1])
             haveRivalInfo = true
             //Убираем экран загрузки
-            print("Убираем экран загрузки")
+            //print("Убираем экран загрузки")
         } else {
             var receivedPocket: [UInt8] = [0,0,0]
             let dataa: Data = data as Data
             dataa.copyBytes(to: &receivedPocket, count: dataa.count)
             switch receivedPocket[0] {
-            case 0: print("Соперник - Вверх") //Соперник пошёл вверх
+            case 0: //print("Соперник - Вверх") //Соперник пошёл вверх
                 scene!.maze!.moveRival(0, playerSpeadChange: true)
-            case 1: print("Соперник - Вправо") //Соперник пошёл вправо
+            case 1: //print("Соперник - Вправо") //Соперник пошёл вправо
                 scene!.maze!.moveRival(1, playerSpeadChange: true)
-            case 2: print("Соперник - Вниз") //Соперник пошёл вниз
+            case 2: //print("Соперник - Вниз") //Соперник пошёл вниз
                 scene!.maze!.moveRival(2, playerSpeadChange: true)
-            case 3: print("Соперник - Влево") //Соперник пошёл влево
+            case 3: //print("Соперник - Влево") //Соперник пошёл влево
                 scene!.maze!.moveRival(3, playerSpeadChange: true)
             case 4:
                 scene!.maze!.rivalPosition!.i = Int(receivedPocket[1])
                 scene!.maze!.rivalPosition!.j = Int(receivedPocket[2])
                 scene!.maze!.rivalPlayer!.position = CGPoint(x: CGFloat(scene!.maze!.rivalPosition!.j) * scene!.maze!.blockSize!.width + scene!.maze!.rivalPlayer!.frame.width / 2, y: -CGFloat(scene!.maze!.rivalPosition!.i) * scene!.maze!.blockSize!.height - scene!.maze!.rivalPlayer!.frame.height / 2)
-            case 5: print("Соперник победил! :(")
+            case 5: //print("Соперник победил! :(")
                 scene!.stopPlaying = true //Останавливаем игру, противник то уже на финише
                 scene!.rivalWantPlayMore = nil //Обнуляем данные
                 scene!.iWantPlayMore = false
@@ -198,7 +197,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                 self.scene!.winnerBg = nil
                 scene!.showWinnerBg()
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
-            case 6: print("Соперник предлагает сыграть ещё раз")
+            case 6: //print("Соперник предлагает сыграть ещё раз")
                 if !scene!.iWantPlayMore {
                     scene!.infoLabel!.isHidden = false
                     scene!.infoLabel!.text = match.players[0].displayName! + " предлагает сыграть ещё раз."
@@ -231,10 +230,10 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     
     //Определяем хоста (почти рандомно)
     func determineHost() {
-        print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
-        print("Rival is: ", self.match!.players[0].playerID!)
+        //print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
+        //print("Rival is: ", self.match!.players[0].playerID!)
         if GKLocalPlayer.localPlayer().playerID! > self.match!.players[0].playerID! {
-            print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
+            //print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
             scene!.iAmHost = true
             scene!.forBestHost()
             haveMaze = true
@@ -267,7 +266,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     //Это уже не успользуем
     func foundBestHostingPlayer(player: GKPlayer?) {
         if let bestHosting = player {
-            print(player!.displayName!, " выбран сервером игры")
+            //print(player!.displayName!, " выбран сервером игры")
             if player!.playerID! == GKLocalPlayer.localPlayer().playerID! {
                 scene!.iAmHost = true
                 scene!.forBestHost()
@@ -276,12 +275,12 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                 scene!.iAmHost = false
             }
         }  else {
-            print("Не удалось определить сервер игры")
-            print("поэтому...это сделает рандом")
-            print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
-            print("Rival is: ", self.match!.players[0].playerID!)
+            //print("Не удалось определить сервер игры")
+            //print("поэтому...это сделает рандом")
+            //print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
+            //print("Rival is: ", self.match!.players[0].playerID!)
             if GKLocalPlayer.localPlayer().playerID! > self.match!.players[0].playerID! {
-                print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
+                //print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
                 scene!.iAmHost = true
                 scene!.forBestHost()
                 haveMaze = true
