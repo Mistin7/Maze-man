@@ -22,8 +22,8 @@ class SettingsViewController: UIViewController {
         size.width *= 2
         size.height *= 2
         let scene = Settings(size: size)
-        skView.showsFPS = true
-        skView.showsNodeCount = true
+        skView.showsFPS = false
+        skView.showsNodeCount = false
         skView.ignoresSiblingOrder = true
         skView.showsPhysics = false
         scene.scaleMode = .aspectFill

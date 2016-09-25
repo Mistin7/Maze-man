@@ -18,8 +18,6 @@ func random(min: CGFloat, max: CGFloat) -> CGFloat {
 
 class GameViewController: UIViewController {
     weak var scrollView: UIScrollView!
-    //@IBOutlet weak var scrollView: UIScrollView!
-    //var scrollView: UIScrollView!
     @IBOutlet weak var loadingView: UIView! //Для экрана загрузки мультиплеера
     
     var backgroundMusicPlayer: AVAudioPlayer!

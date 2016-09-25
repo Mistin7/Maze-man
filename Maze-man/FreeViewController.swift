@@ -35,8 +35,8 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         size.width *= 2
         size.height *= 2
         scene = Free(size: size)
-        skView.showsFPS = true
-        skView.showsNodeCount = true
+        skView.showsFPS = false
+        skView.showsNodeCount = false
         skView.ignoresSiblingOrder = true
         skView.showsPhysics = false
         scene!.scaleMode = .aspectFill

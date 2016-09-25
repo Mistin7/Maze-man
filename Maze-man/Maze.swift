@@ -527,59 +527,59 @@ class Maze {
         else { bg!.position = CGPoint(x: 0, y: 0) } //Если свободный, то начиная с левого верхнево угла
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
-        blockSize!.height = round(blockSize!.height)
-        blockSize!.width = round(blockSize!.width)
-        /*if Int(blockSize!.height) % 2 == 1 {
+        blockSize!.height = CGFloat(Int(blockSize!.height))
+        blockSize!.width = CGFloat(Int(blockSize!.width))
+        if Int(blockSize!.height) % 2 == 1 {
             blockSize!.height -= 1
         }
         if Int(blockSize!.width) % 2 == 1 {
             blockSize!.width -= 1
-        }*/
+        }
         //var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
         //var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         for row in 1..<maze!.count-1 {
             let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
             tile.size = blockSize!
-            tile.position = CGPoint(x:round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
+            tile.position = CGPoint(x: CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(row) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
             tile.zPosition = 1
             bg!.addChild(tile)
             
             let tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
             tileright.size = blockSize!
-            tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
+            tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(row) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
             bg!.addChild(tileright)
         }
         for col in 1..<maze![0].count-1 {
             let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-mid"))
             tile.size = blockSize!
-            tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
+            tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(Int(blockSize!.height / 2)))
             bg!.addChild(tile)
             
             let tilebot = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
             tilebot.size = blockSize!
-            tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
+            tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(maze!.count-1) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
             bg!.addChild(tilebot)
         }
         
         let tiletopleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-left"))
         tiletopleft.size = blockSize!
-        tiletopleft.position = CGPoint(x: round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
+        tiletopleft.position = CGPoint(x: CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(Int(blockSize!.height / 2)))
         bg!.addChild(tiletopleft)
         
         let tiletopright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-right"))
         tiletopright.size = blockSize!
-        tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
+        tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(Int(blockSize!.height / 2)))
         bg!.addChild(tiletopright)
         
         let tilebotleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-left"))
         tilebotleft.size = blockSize!
-        tilebotleft.position = CGPoint(x: round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
+        tilebotleft.position = CGPoint(x: CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(maze!.count-1) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
         bg!.addChild(tilebotleft)
         
         let tilebotright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-right"))
         tilebotright.size = blockSize!
-        tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
+        tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(maze!.count-1) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
         bg!.addChild(tilebotright)
         
         //Заполняем всё зелёными квадратами (кроме граней)
@@ -587,7 +587,7 @@ class Maze {
             for j in 1..<maze![0].count-1 {
                 let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-main"))
                 tile.size = blockSize!
-                tile.position = CGPoint(x: CGFloat(j) * round(blockSize!.width) + round(blockSize!.width / 2), y: -CGFloat(i) * blockSize!.height - round(blockSize!.height / 2))
+                tile.position = CGPoint(x: CGFloat(j) * CGFloat(Int(blockSize!.width)) + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(i) * blockSize!.height - CGFloat(Int(blockSize!.height / 2)))
                 bg!.addChild(tile)
             }
         }
@@ -967,9 +967,11 @@ class Maze {
                 // 3
                 if let sprite = tile as? SKSpriteNode {
                     //sprite.blendMode = .Replace
-                    sprite.size = blockSize!
+                    //sprite.size = blockSize!
+                    sprite.size.width = CGFloat(Int(blockSize!.width))
+                    sprite.size.height = CGFloat(Int(blockSize!.height))
                 }
-                tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
+                tile!.position = CGPoint(x: CGFloat(col) * CGFloat(Int(blockSize!.width)) + CGFloat(Int(blockSize!.width / 2)), y: -CGFloat(row) * CGFloat(Int(blockSize!.height)) - CGFloat(Int(blockSize!.height / 2)))
                 tile!.zPosition = 2
                 bg!.addChild(tile!)
             }
