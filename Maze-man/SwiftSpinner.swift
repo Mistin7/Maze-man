@@ -36,9 +36,6 @@ public class SwiftSpinner: UIView {
         blurView = UIVisualEffectView(effect: blurEffect)
         addSubview(blurView)
         
-        
-        
-        //vibrancyView = UIVisualEffectView(effect: UIVibrancyEffect(forBlurEffect: blurEffect))
         vibrancyView = UIVisualEffectView(effect: blurEffect)
         addSubview(vibrancyView)
         
@@ -149,7 +146,6 @@ public class SwiftSpinner: UIView {
                 spinner.showWithDelayBlock?()
             }
         }
-        
         return spinner
     }
     
@@ -273,8 +269,6 @@ public class SwiftSpinner: UIView {
     //
     public func addTapHandler(tap: @escaping (()->()), subtitle subtitleText: String? = nil) {
         clearTapHandler()
-        
-        //vibrancyView.contentView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: Selector("didTapSpinner")))
         tapHandler = tap
         
         if subtitleText != nil {

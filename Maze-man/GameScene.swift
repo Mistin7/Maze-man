@@ -41,17 +41,6 @@ class GameScene: SKScene, GKGameCenterControllerDelegate {
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
         for touch: AnyObject in touches {
             let location = touch.location(in: self)
-            /*if nodeAtPoint(location) == playButton {
-                let competitiveScene = Competitive(size: size)
-                competitiveScene.scaleMode = scaleMode
-                self.view!.presentScene(competitiveScene)
-            } else {
-                if nodeAtPoint(location) == settingsButton {
-                    let settingsScene = Settings(size: size)
-                    settingsScene.scaleMode = scaleMode
-                    self.view!.presentScene(settingsScene)
-                }
-            }*/
             switch atPoint(location) {
             case playButton:
                 let competitiveScene = Competitive(size: size)

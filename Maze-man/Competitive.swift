@@ -11,7 +11,6 @@ import GameKit
 
 class Competitive: SKScene, GKGameCenterControllerDelegate {
     //То что будет поверх всего перед началом игры
-    //var upperLayer = SKSpriteNode()
     var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
     var playButton = SKSpriteNode(imageNamed: "playButton")
@@ -24,7 +23,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     var oldFingerPosition: CGPoint? = nil
     var resolution: Bool = false
     var restart  = SKSpriteNode(imageNamed: "restart")
-    //var backButton = SKSpriteNode(imageNamed: "backButton")
     var lastUpdateTime: TimeInterval = 0.0
     var dt = 0.0
     var stopPlaying = true
@@ -33,7 +31,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     var count: Double = 0.0
     var timer = Timer()
     var timeLabel = SKLabelNode()
-    var bestTimeLabel = SKLabelNode()
+    //var bestTimeLabel = SKLabelNode()
     let defaults = UserDefaults.standard
     var results: Double = 0
     
@@ -50,7 +48,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     let cropNode = SKCropNode() //Для отображения полосы уровня
     var lvlLineMask = SKSpriteNode() //Через неё видна полоса лвл-а
     var countLvlUp: Int = 0 //Сколько лвл поднимает пользователь (для progressBar)
-    //var filmButton: SKSpriteNode?
     var featureIcon = SKSpriteNode()
     var featureText = SKLabelNode(fontNamed: "Myriad Pro")
     var soundButtonResultBg = SKSpriteNode(imageNamed: "soundOn")
@@ -78,15 +75,12 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         
         //Всё что идёт поверх карты перед началом игры
         var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
-        //upperLayer = SKSpriteNode(color: UIColor.black().withAlphaComponent(0.0), size: self.size)
         upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
         upperLayer!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         upperLayer!.lineWidth = 0.0
         upperLayer!.fillColor = UIColor.white
-        //upperLayer!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         upperLayer!.zPosition = 99
         addChild(upperLayer!)
-        //upperLayer.hidden = true
         
         logo.size = CGSize(width: 268, height: 38)
         logo.position = CGPoint(x: 0, y: 250)
@@ -119,7 +113,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
             defaults.set(100, forKey: "points")
         }
         
-        //NSNotificationCenter.defaultCenter().postNotificationName("game mode On", object: self)
         
         //backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
@@ -134,13 +127,9 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         addChild(restart)
         restart.isHidden = true
         //Кнопка в главное меню
-        //backButton.size = CGSize(width: 50, height: 50)
-        //backButton.position = CGPoint(x: 70, y: size.height - 70)
-        //addChild(backButton)
         //Добавляем кол-во  монеток на экран
         addCoinsInfo()
         
-        //GameViewController.data.scrollView.scrollEnabled = false
         
         //Добавляем различную озвучку
         coinSound = SKAction.playSoundFileNamed("sounds/coin.mp3", waitForCompletion: false)
@@ -199,12 +188,10 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                 switch maze!.movePlayerDirection {
                 case 0:
                     if maze!.player!.position.y >= maze!.willPlayerPosition.y {
-                        //maze!.player!.position.y = maze!.willPlayerPosition.y
                         maze!.player!.position.y = -CGFloat(maze!.playerPosition.i) * maze!.blockSize!.height - maze!.player!.frame.height / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -212,12 +199,10 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     }
                 case 1:
                     if maze!.player!.position.x >= maze!.willPlayerPosition.x {
-                        //maze!.player!.position.x = maze!.willPlayerPosition.x
                         maze!.player!.position.x = CGFloat(maze!.playerPosition.j) * maze!.blockSize!.width + maze!.player!.frame.width / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -225,12 +210,10 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     }
                 case 2:
                     if maze!.player!.position.y <= maze!.willPlayerPosition.y {
-                        //maze!.player!.position.y = maze!.willPlayerPosition.y
                         maze!.player!.position.y = -CGFloat(maze!.playerPosition.i) * maze!.blockSize!.height - maze!.player!.frame.height / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -238,12 +221,10 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     }
                 case 3:
                     if maze!.player!.position.x <= maze!.willPlayerPosition.x {
-                        //maze!.player!.position.x = maze!.willPlayerPosition.x
                         maze!.player!.position.x = CGFloat(maze!.playerPosition.j) * maze!.blockSize!.width + maze!.player!.frame.width / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -282,10 +263,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                 maze!.bg!.removeFromParent()
                 timer.invalidate()
                 makeMaze()
-                /*case backButton:
-                let gameScene = GameScene(size: size)
-                gameScene.scaleMode = scaleMode
-                self.view!.presentScene(gameScene)*/
             case continueButton:
                 if defaults.bool(forKey: "sound") {
                     run(clickSound!)
@@ -300,8 +277,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     run(clickSound!)
                 }
                 showLeader()
-            /*case filmButton!:
-                print("Плеер хочет посмореть видео за 25 монет")*/
             case soundButtonResultBg, soundButton:
                 if defaults.bool(forKey: "sound") {
                     run(clickSound!)
@@ -373,14 +348,12 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     func weOnFinish() {
         print("You won")
         timer.invalidate()
-        if count < defaults.double(forKey: "bestTime") || defaults.double(forKey: "bestTime") == 0.0 {
+        /*if count < defaults.double(forKey: "bestTime") || defaults.double(forKey: "bestTime") == 0.0 {
             defaults.set(count, forKey: "bestTime")
             results = defaults.double(forKey: "bestTime")
-            //bestTimeLabel.text = "Best time: \(results)"
-        }
+        }*/
         
         countLvlUp = (defaults.integer(forKey: "points") % 100 + Int(350/count)) / 100
-        //runAction(SKAction.sequence([SKAction.waitForDuration(1), SKAction.runBlock(showResultBg)]))
         showResultBg(true)
         
         saveHighscore(defaults.integer(forKey: "points") / 100)
@@ -418,7 +391,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         timeOfLvlLineEvolution = 2.0
         
         let dtWithLvlLine2 = dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integer(forKey: "points")).truncatingRemainder(dividingBy: 100) / 100 * self.lvlLine!.size.width
-        //var dtPoints: CGFloat = CGFloat(3.5/count) //Сколько плеер поднял процентов/100 за раунд
         if countLvlUp == 0 {
             lvlLineMask.run(SKAction.sequence([
                 SKAction.wait(forDuration: 1.5),
@@ -436,13 +408,9 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     self.lvlFeatures(lvl: Int(self.defaults.integer(forKey: "points") / 100)) //Когда подняли уровень, появляется описание его открытий
                     self.currentLvl.text = "\(Int(self.defaults.integer(forKey: "points") / 100)) lvl"
                     self.nextLvl.text = "\(Int(self.defaults.integer(forKey: "points") / 100) + 1) lvl"
-                    //print(self.dtWithLvlLine!)
-                    //self.dtWithLvlLine! = self.dtWithLvlLine! - self.lvlLine!.size.width + CGFloat(self.defaults.integerForKey("points")) % 100 / 100 * self.lvlLine!.size.width
                     print("lvlUp")
-                    //print(self.dtWithLvlLine!)
                 }),
                 SKAction.wait(forDuration: 1.5),
-                //SKAction.moveByX(self.dtWithLvlLine!, y: 0, duration: 2)
                 SKAction.moveBy(x: dtWithLvlLine2, y: 0, duration: 2)
                 ]))
         } else if countLvlUp > 1 {
@@ -532,15 +500,12 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         case 14...17: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true)
         case 18...21: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 1)
         case 22...25: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2)
-        //case 26...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1)
+        
         case 26...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1, warders: 1)
-        //case 9...999: maze = Maze(blockCount: 19, startBlockI: 1, startBlockJ: 1, mazeSize: CGSize(width: size.width, height: size.height), finishBlockI: 17, finishBlockJ: 17, timer: 1, speedRoads: true, teleports: 2, inversions: 1, warders: 1)
+       
         default: break
         }
-        //maze = Maze(blockCount: 19, mazeSize: size, finishBlockI: 17, finishBlockJ: 17)
-        //maze!.generateTimer()
-        //maze!.addSpeedRoads()
-        //maze!.addTeleport(4)
+        
         bgBasic!.addChild(maze!.bg!)
         maze!.printMaze()
         
@@ -611,13 +576,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         leadersButtonResultBg.size = CGSize(width: 100, height: 100)
         leadersButtonResultBg.position = CGPoint(x: self.size.width / 2 - soundButtonResultBg.size.width / 2 - 30 - 115, y: -self.size.height / 2 + soundButtonResultBg.size.height / 2 + 40)
         resultBg!.addChild(leadersButtonResultBg)
-        
-        /*filmButton = SKSpriteNode(imageNamed: "film-button")
-        filmButton!.position = CGPoint(x: 160, y: 300)
-        filmButton!.zPosition = 100
-        filmButton!.size = CGSize(width: 166, height: 75)
-        filmButton!.zRotation = Pi * 1.96
-        resultBg?.addChild(filmButton!)*/
     }
     
     func addBg() {
@@ -655,15 +613,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         timeLabel.zPosition = 99
         addChild(timeLabel)
         
-        /*results = defaults.double(forKey: "bestTime")
-        bestTimeLabel.text = "Best time: \(results)"
-        bestTimeLabel.position = CGPoint(x: 150, y: size.height - 160)
-        bestTimeLabel.fontColor = SKColor.white
-        bestTimeLabel.fontSize = 28
-        bestTimeLabel.fontName = "Chalkboard SE Bold"
-        bestTimeLabel.name = "bestTime"
-        bestTimeLabel.zPosition = 99
-        addChild(bestTimeLabel)*/
     }
     func counter() {
         if stopPlaying == false {
@@ -689,7 +638,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     print("error")
                 }
             })
-            //GKScore.reportScores(scoreArray, withCompletionHandler: )
         }
     }
     

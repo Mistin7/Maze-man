@@ -24,7 +24,6 @@ class Free: SKScene {
     var stopPlaying = true
     
     //То что будет поверх всего перед началом игры
-    //var upperLayer = SKSpriteNode()
     var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
     var nameMode = SKLabelNode(text: "Мультиплеер")
@@ -58,19 +57,13 @@ class Free: SKScene {
     
     override func didMove(to view: SKView) {
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
-        //Убираем следующие 3 строки, так как они нужны после поиска игрока
-        //makeMaze() // Создаём и добавляем лабиринт
-        //addBg() //Добавляем самый базовый background
-        //bgBasic!.addChild(maze!.bg!) //Добавляем на экран лабиринт, ставим тут, так как нам нужны заранее кординаты плеера
         
         //Всё что идёт поверх карты перед началом игры
         var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
-        //upperLayer = SKSpriteNode(color: UIColor.black().withAlphaComponent(0.0), size: self.size)
         upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
         upperLayer!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         upperLayer!.lineWidth = 0.0
         upperLayer!.fillColor = UIColor.white
-        //upperLayer!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         upperLayer!.zPosition = 99
         addChild(upperLayer!)
         
@@ -129,10 +122,6 @@ class Free: SKScene {
                 }
             }
             
-            //Если столкнулись со смотрителем, то мы проиграли
-            /*if maze!.checkCollisions() {
-             weLosed()
-             }*/
             //Проверяем на столкновение (смотрели, монетки)
             switch maze!.checkCollisions() {
             case 0: break
@@ -147,7 +136,6 @@ class Free: SKScene {
                 switch maze!.movePlayerDirection {
                 case 0: // Вверх
                     if maze!.player!.position.y >= maze!.willPlayerPosition.y {
-                        //maze!.player!.position.y = maze!.willPlayerPosition.y
                         maze!.player!.position.y = -CGFloat(maze!.playerPosition.i) * maze!.blockSize!.height - maze!.player!.frame.height / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
@@ -158,7 +146,6 @@ class Free: SKScene {
                         } catch {
                             print("Some error in sendData")
                         }
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -166,12 +153,10 @@ class Free: SKScene {
                     }
                     //bgBasic!.position.y -= maze!.playerSpeed! * CGFloat(dt) * maze!.kSpeed
                     if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height + size.height / 2 - 10 { //Когда ы у краёв лабиринта, чтобы лабиринт не отходил от краёв экрана (-10 чтобы внизу земля была видна)
-                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
                     }
                 case 1:
                     if maze!.player!.position.x >= maze!.willPlayerPosition.x {
-                        //maze!.player!.position.x = maze!.willPlayerPosition.x
                         maze!.player!.position.x = CGFloat(maze!.playerPosition.j) * maze!.blockSize!.width + maze!.player!.frame.width / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
@@ -182,7 +167,6 @@ class Free: SKScene {
                         } catch {
                             print("Some error in sendData")
                         }
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
@@ -190,12 +174,10 @@ class Free: SKScene {
                     }
                     //bgBasic!.position.x -= maze!.playerSpeed! * CGFloat(dt) * maze!.kSpeed
                     if maze!.player!.position.x > size.width / 2 && maze!.player!.position.x < maze!.bg!.frame.width - size.width / 2 {
-                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.x = -maze!.player!.position.x + size.width / 2
                     }
                 case 2:
                     if maze!.player!.position.y <= maze!.willPlayerPosition.y {
-                        //maze!.player!.position.y = maze!.willPlayerPosition.y
                         maze!.player!.position.y = -CGFloat(maze!.playerPosition.i) * maze!.blockSize!.height - maze!.player!.frame.height / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
@@ -206,19 +188,16 @@ class Free: SKScene {
                         } catch {
                             print("Some error in sendData")
                         }
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
                     if maze!.player!.position.y < -size.height / 2 && maze!.player!.position.y > -maze!.bg!.frame.height + size.height / 2 - 10{
-                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.y = size.height / 2 - maze!.player!.position.y
                     }
                 case 3:
                     if maze!.player!.position.x <= maze!.willPlayerPosition.x {
-                        //maze!.player!.position.x = maze!.willPlayerPosition.x
                         maze!.player!.position.x = CGFloat(maze!.playerPosition.j) * maze!.blockSize!.width + maze!.player!.frame.width / 2
                         maze!.movePlayerDirection = 4
                         maze!.moveResolution = true
@@ -229,14 +208,12 @@ class Free: SKScene {
                         } catch {
                             print("Some error in sendData")
                         }
-                        //print(maze!.playerPosition)
                         if maze!.willPlayerDirection != nil {
                             maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
                     if maze!.player!.position.x > size.width / 2 && maze!.player!.position.x < maze!.bg!.frame.width - size.width / 2 {
-                        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
                         bgBasic!.position.x = -maze!.player!.position.x + size.width / 2
                     }
                 default: break
@@ -333,13 +310,6 @@ class Free: SKScene {
                     stopPlaying = true
                 }
                 //При нажатии на эту кнопку должно поялвяться окно с уточнением
-                /*if stopPlaying {
-                    stopPlaying = false
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-                } else {
-                    stopPlaying = true
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
-                }*/
             case playMoreButton:
                 if defaults.bool(forKey: "sound") {
                     run(clickSound!)
@@ -380,9 +350,6 @@ class Free: SKScene {
                             infoLabel!.text = "Запрос отправлен. Ждём ответа " + self.match!.players[0].displayName! + "."
                             infoLabel!.fontColor = UIColor.gray
                         }
-                        //Если мне приходит запрос, то у меня пишется, что-то типа "Тот чувак хочет ещё с вами сыграть, не хотите?"
-                        //Или типа тот чувак ушёл (ливнул) и кнопка playMoreButton не активна
-                        //Потом хост игры строит новый лабиринт и отправляет второму и т.д.
                     }
                 }
             default:
@@ -392,7 +359,6 @@ class Free: SKScene {
         }
     }
     
-    //func printFriends(friendPlayers: [GKPlayer]?, Error: NSError?) -> Void {
     func printFriends(_ friendPlayers: [GKPlayer]?, _ Error: Error?) {
         for player in friendPlayers! {
             print(player.displayName)
@@ -416,9 +382,7 @@ class Free: SKScene {
                             } catch {
                                 print("Some error in sendData")
                             }
-                        } /*else if maze!.moveResolution == false && maze!.willPlayerPosition.y < maze!.player!.position.y { //Это условие никогда не срабатывает
-                            maze!.movePlayer(0, playerSpeadChange: false)
-                        }*/ else {
+                        } else {
                             maze!.willPlayerDirection = 0
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y > -dtLine!.x {
@@ -429,9 +393,7 @@ class Free: SKScene {
                             } catch {
                                 print("Some error in sendData")
                             }
-                        } /*else if maze!.moveResolution == false && (maze!.willPlayerPosition.x < maze!.player!.position.x) { //Это условие никогда не срабатывает
-                            maze!.movePlayer(1, playerSpeadChange: false)
-                        }*/ else {
+                        } else {
                             maze!.willPlayerDirection = 1
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y < -dtLine!.x {
@@ -442,9 +404,7 @@ class Free: SKScene {
                             } catch {
                                 print("Some error in sendData")
                             }
-                        } /*else if maze!.moveResolution == false && maze!.willPlayerPosition.y > maze!.player!.position.y { //Это условие никогда не срабатывает
-                            maze!.movePlayer(2, playerSpeadChange: false)
-                        }*/ else {
+                        } else {
                             maze!.willPlayerDirection = 2
                         }
                     } else if dtLine!.y > dtLine!.x && dtLine!.y < -dtLine!.x {
@@ -455,9 +415,7 @@ class Free: SKScene {
                             } catch {
                                 print("Some error in sendData")
                             }
-                        } /*else if maze!.moveResolution == false && maze!.willPlayerPosition.x > maze!.player!.position.x { //Это условие никогда не срабатывает
-                            maze!.movePlayer(3, playerSpeadChange: false)
-                        }*/ else {
+                        }  else {
                             maze!.willPlayerDirection = 3
                         }
                     }
@@ -485,7 +443,6 @@ class Free: SKScene {
     
     func makeMaze() {
         maze = Maze(competitiveMod: false, blockCount: 31, startBlockI: 1, startBlockJ: 1, finishBlockI: 29, finishBlockJ: 29, timer: 1, speedRoads: false, teleports: 2, inversions: 1, warders: 1, match: match)
-        //maze!.printMaze()
     }
     
     func addBg() {
@@ -518,11 +475,6 @@ class Free: SKScene {
         winnerBg!.addChild(winnerLabel)
         
         winnerNameLabel = SKLabelNode(fontNamed: "San Francisco")
-        /*if iAmWinner! {
-            winnerNameLabel.text = String(GKLocalPlayer.localPlayer().displayName!)
-        } else {
-            winnerNameLabel.text = String(rivalName!)
-        }*/
         winnerNameLabel!.fontColor = SKColor.white
         winnerNameLabel!.fontSize = 90.0
         winnerNameLabel!.position = CGPoint(x: 0, y: 80)
@@ -575,52 +527,14 @@ class Free: SKScene {
         })]))
     }
     
-    //Когда мы хотим сыграть ещё раз с тем же плеером
-    /*func oneMoreMatch() {
-        //Тут генерируем новый лабиринт и т.д., короче, играем заного
-        maze!.bg!.removeFromParent()
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-        if iAmHost {
-            //Отправляем массив с лабиринтом второму плееру
-            makeMaze(self.match!)
-            maze!.generateMaze()
-            var mazeArray: [UInt8] = []
-            //Дмумерный массив лабиринта объединяем в одинарный
-            for i in maze!.maze! {
-                mazeArray += i
-            }
-            do {
-                try self.match!.sendData(toAllPlayers: NSData(bytes: &mazeArray, length: mazeArray.count) as Data, with: GKMatchSendDataMode.reliable)
-            } catch {
-                print("Some error in sendData")
-            }
-            print("Массив с лабиринтом отправлен")
-            print("Лабиринт построен")
-            maze!.startForMultiGame()
-            addBg()
-            bgBasic!.addChild(maze!.bg!)
-            
-            winnerBg!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
-                self.winnerBg!.isHidden = true
-                self.stopPlaying = false
-                NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-            })]))
-        }
-    }*/
-    
+
     
     
     func forBestHost() {
-        /*if maze?.bg != nil {
-            maze!.bg!.removeFromParent()
-        }*/
         maze?.bg?.removeFromParent()
         NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
         
         //Генерируем лабиринт
-        /*if maze == nil {
-            makeMaze()
-        }*/
         makeMaze()
         maze!.generateMaze()
         var mazeArray: [UInt8] = []
@@ -660,8 +574,3 @@ class Free: SKScene {
     
 }
 
-//Баг:
-//- когда мы медленно двигаем пальцем в правом окне (мультиплеере), тогда выходил ошибка что найден nil
-// - Когда не удалось определить сервер и делает это рандом, почему то на устройствах отобразились разные лабиринты !!!
-
-//Когда оба плеера ожидают начала игры, должен отображаться экран загрузки, а не стартовый экран с кнопкой Play

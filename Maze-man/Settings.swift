@@ -20,19 +20,14 @@ class Settings: SKScene {
     var speedLineMask = SKSpriteNode() //Через неё видна полоса скорости
     let statsPrice: [Int] = [15,20,25,35,45,60,75,90,120,150,180,220,260,300,340,380,430,480,540,600] //Сколько стоят уровни соответственно
     
-    //Текст с описанием игры
-    //var description1: SKLabelNode = SKLabelNode(fontNamed: "Myriad Pro")
     
-    //var filmButton: SKSpriteNode?
     
     //Различная озвучка
     var clickSound: SKAction?
     
-    //var soundButton = SKSpriteNode(imageNamed: "soundOn")
     let defaults = UserDefaults.standard
     override func didMove(to view: SKView) {
         print("settings scene")
-        //backgroundColor = SKColor(red: 26/255, green: 26/255, blue: 26/255, alpha: 1.0)
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         
         //Всё для характеристик
@@ -55,7 +50,6 @@ class Settings: SKScene {
         
         speedProgressBar.size = CGSize(width: 355, height: 28)
         speedProgressBar.position = CGPoint(x: 0, y: 0)
-        ////speedProgressBarBg!.addChild(speedProgressBar)
         
         speedLineMask = SKSpriteNode(color: UIColor.black, size: CGSize(width: speedProgressBar.size.width + 5, height: speedProgressBar.size.height)) //+10 - 2 отступа (не 1 для симметрии)
         speedLineMask.anchorPoint = CGPoint(x: 0.0, y: 0.5)
@@ -86,28 +80,10 @@ class Settings: SKScene {
         speedCost.zPosition = 10
         speedImproveButton.addChild(speedCost)
         
-        /*if defaults.bool(forKey: "sound") { soundButton.texture = SKTexture(imageNamed: "soundOff") }
-        else { soundButton.texture = SKTexture(imageNamed: "soundOn") }
-        soundButton.size = CGSize(width: 50, height: 50)
-        soundButton.position = CGPoint(x: self.size.width - soundButton.size.width - 20, y: self.size.height - soundButton.size.height - 20)
-        addChild(soundButton)*/
-        
         print(size)
-        
-        //filmButton = SKSpriteNode(imageNamed: "film-button")
-        //filmButton!.position = CGPoint(x: 0, y: -200)
-        //filmButton!.size = CGSize(width: 249, height: 112)
-        //statsBg.addChild(filmButton!)
         
         //Добавляем различную озвучку
         clickSound = SKAction.playSoundFileNamed("sounds/click.mp3", waitForCompletion: false)
-        
-        //Тексты с описанием игры
-        //description1.text = "Проходи лабиринты как можно быстрее, чтобы получать больше опыта и поднимать уровни."
-        //description1.position = CGPoint(x: self.size.width / 2, y: self.size.height / 2 + 50)
-        //description1.fontSize = 28
-        //description1.fontColor = UIColor.white
-        //addChild(description1)
     }
     override init(size: CGSize) {
         super.init(size: size)
@@ -120,26 +96,11 @@ class Settings: SKScene {
         for touch: AnyObject in touches {
             let location = touch.location(in: self)
             switch atPoint(location) {
-            /*case soundButton:
-                if defaults.bool(forKey: "sound") {
-                    run(clickSound!)
-                }
-                if defaults.bool(forKey: "sound") {
-                    soundButton.texture = SKTexture(imageNamed: "soundOff")
-                    defaults.set(false, forKey: "sound")
-                    SKTAudio.sharedInstance().pauseBackgroundMusic()
-                } else {
-                    soundButton.texture = SKTexture(imageNamed: "soundOn")
-                    defaults.set(true, forKey: "sound")
-                    SKTAudio.sharedInstance().resumeBackgroundMusic()
-                }*/
             case speedImproveButton:
                 if defaults.bool(forKey: "sound") {
                     run(clickSound!)
                 }
                 plusSpeed()
-            /*case filmButton!:
-                print("Плеер хочет посмореть видео за 25 монет")*/
             default: break
             }
         }
@@ -148,17 +109,6 @@ class Settings: SKScene {
     //Когда мы покупаем скорость
     func plusSpeed() {
         if defaults.integer(forKey: "speed") < 100 {
-            /*switch (defaults.integer(forKey: "speed") + 5) / 5 {
-            case 1:
-                if defaults.integer(forKey: "coins") >= statsPrice[defaults.integer(forKey: "speed") / 5] { //Если хватает монет на улучшение
-                    defaults.set(defaults.integer(forKey: "speed") + 5, forKey: "speed") //Повышаем в памяти его скорость
-                    defaults.set(defaults.integer(forKey: "coins") - statsPrice[defaults.integer(forKey: "speed") / 5], forKey: "coins") //Вычитаем из памяти потраченные монеты
-                    speedLineMask.position.x += 18 //на один шаг (полоску)
-                } else { //Если не хватает монет на улучшение
-                    print("У Вас не хватает", statsPrice[defaults.integer(forKey: "speed") / 5] - defaults.integer(forKey: "coins"), "монет на улучшение")
-                }
-            default: break;
-            }*/
             if defaults.integer(forKey: "coins") >= statsPrice[defaults.integer(forKey: "speed") / 5] { //Если хватает монет на улучшение
                 defaults.set(defaults.integer(forKey: "coins") - statsPrice[defaults.integer(forKey: "speed") / 5], forKey: "coins") //Вычитаем из памяти потраченные монеты
                 defaults.set(defaults.integer(forKey: "speed") + 5, forKey: "speed") //Повышаем в памяти его скорость

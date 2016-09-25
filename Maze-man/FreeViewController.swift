@@ -12,7 +12,6 @@ import GameKit
 import Foundation
 
 class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, GKMatchDelegate {
-//class FreeViewController: UIViewController {
     var scene: Free?
     var matchmakerViewController: GKMatchmakerViewController?
     var match: GKMatch? //Здесь хранится сам наш матч
@@ -63,7 +62,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         matchmakerViewController!.matchmakerDelegate = self
         self.present(matchmakerViewController!, animated: true, completion: nil)
     }
-    //GKMatchmakerViewControllerDelegate
+  
     func matchmakerViewControllerWasCancelled(_ viewController: GKMatchmakerViewController) { //Когда отменяем поиск
         print("Убираем это окно")
         viewController.dismiss(animated: true, completion: nil)
@@ -83,7 +82,6 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             loadingView!.isHidden = false
             SwiftSpinner.show(title: "Loading", animated: true)
             viewController.dismiss(animated: true, completion: nil)
-            //self.match!.chooseBestHostingPlayer(completionHandler: foundBestHostingPlayer)
             determineHost()
             //Узнаём ник нашего противника
             for player in match.players {
@@ -124,11 +122,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     func match(_ match: GKMatch, didReceiveData data: NSData, fromRemotePlayer player: GKPlayer) {
         //Первое что мы должны получить - массив лабиринта
         if !haveMaze {
-            //scene!.maze!.bg?.removeFromParent()
             NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-            /*if scene?.maze?.bg != nil {
-                scene!.maze!.bg!.removeFromParent()
-            }*/
             scene!.maze?.bg?.removeFromParent()
             scene!.makeMaze()
             var receivedMaze: [UInt8] = [UInt8](repeating: 0, count: scene!.maze!.blockCount! * scene!.maze!.blockCount!)
@@ -215,12 +209,10 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                 haveMaze = false
                 if scene!.iAmHost {
                     haveMaze = true
-                    //NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
                     if scene!.iWantPlayMore == true {
                         scene!.forBestHost()
                     }
                 }
-                //должен появляться Label типа противник хочет ещё разок сыграть
             default: break
             }
             //Если мы получили лабиринт и инфу о противнике, то дальше получаем по байту по ходу игры (направление, на финише и .д.)
@@ -272,15 +264,10 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         scene!.iLeft = false
     }
     
-    
-    
-    
-    
     //Это уже не успользуем
     func foundBestHostingPlayer(player: GKPlayer?) {
         if let bestHosting = player {
             print(player!.displayName!, " выбран сервером игры")
-            //scene!.match = match
             if player!.playerID! == GKLocalPlayer.localPlayer().playerID! {
                 scene!.iAmHost = true
                 scene!.forBestHost()
@@ -293,7 +280,6 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             print("поэтому...это сделает рандом")
             print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
             print("Rival is: ", self.match!.players[0].playerID!)
-            //scene!.match = match
             if GKLocalPlayer.localPlayer().playerID! > self.match!.players[0].playerID! {
                 print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
                 scene!.iAmHost = true
@@ -302,54 +288,4 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             }
         }
     }
-    
-    /*func forBestHost(player: GKPlayer) {
-        print(player.displayName!, " выбран сервером игры")
-        if player.playerID! == GKLocalPlayer.localPlayer().playerID! {
-            scene!.maze!.bg?.removeFromParent()
-            NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-            
-            iAmHost = true
-            scene!.iAmHost = true
-            //Генерируем лабиринт
-            scene!.makeMaze(self.match!)
-            scene!.maze!.generateMaze()
-            var mazeArray: [UInt8] = []
-            //Дмумерный массив лабиринта объединяем в одинарный
-            for i in scene!.maze!.maze! {
-                mazeArray += i
-            }
-            //Отправляем массив с лабиринтом сопернику
-            do {
-                try self.match!.sendData(toAllPlayers: NSData(bytes: &mazeArray, length: mazeArray.count) as Data, with: GKMatchSendDataMode.reliable)
-            } catch {
-                print("Some error in sendData")
-            }
-            print("Массив с лабиринтом отправлен")
-            haveMaze = true
-            print("Лабиринт построен")
-            scene!.maze!.startForMultiGame() //Отправляем свой скин и скорость сопернику, также прорисоываем у себя лабиринт
-            scene!.addBg()
-            scene!.bgBasic!.addChild(scene!.maze!.bg!)
-            
-            /*scene!.upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
-                self.scene!.upperLayer!.isHidden = true
-                self.scene!.stopPlaying = false
-                NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-            })]))*/
-            if scene!.upperLayer!.isHidden == false {
-                scene!.upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
-                    self.scene!.upperLayer!.isHidden = true
-                    self.scene!.stopPlaying = false
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-                })]))
-            } else if scene!.winnerBg?.isHidden == false {
-                scene!.winnerBg!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
-                    self.scene!.winnerBg!.isHidden = true
-                    self.scene!.stopPlaying = false
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-                })]))
-            }
-        } else { iAmHost = false }
-    } */
 }
