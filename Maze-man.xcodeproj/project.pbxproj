@@ -28,6 +28,7 @@
 		85E0C7311C6FADF4003215B1 /* Maze.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C7301C6FADF4003215B1 /* Maze.swift */; };
 		85E0C7331C6FAE0D003215B1 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85E0C7321C6FAE0D003215B1 /* Settings.swift */; };
 		85EC19931D731DCF0051AB13 /* SwiftSpinner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EC19921D731DCF0051AB13 /* SwiftSpinner.swift */; };
+		85F6903D1D8D62BA007736F3 /* SKTAudio.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85F6903C1D8D62BA007736F3 /* SKTAudio.swift */; };
 		85FDD5F31C8ED9060063624E /* Free.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FDD5F21C8ED9060063624E /* Free.swift */; };
 		85FDD5F51C8ED9860063624E /* FreeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85FDD5F41C8ED9860063624E /* FreeViewController.swift */; };
 /* End PBXBuildFile section */
@@ -68,6 +69,7 @@
 		85E0C7301C6FADF4003215B1 /* Maze.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Maze.swift; sourceTree = "<group>"; };
 		85E0C7321C6FAE0D003215B1 /* Settings.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		85EC19921D731DCF0051AB13 /* SwiftSpinner.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SwiftSpinner.swift; sourceTree = "<group>"; };
+		85F6903C1D8D62BA007736F3 /* SKTAudio.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SKTAudio.swift; sourceTree = "<group>"; };
 		85FDD5F21C8ED9060063624E /* Free.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Free.swift; sourceTree = "<group>"; };
 		85FDD5F41C8ED9860063624E /* FreeViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FreeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -147,6 +149,7 @@
 				85FDD5F41C8ED9860063624E /* FreeViewController.swift */,
 				85EC19921D731DCF0051AB13 /* SwiftSpinner.swift */,
 				85E0C7101C6FAB0A003215B1 /* GameViewController.swift */,
+				85F6903C1D8D62BA007736F3 /* SKTAudio.swift */,
 				850CD7311D2858E6008C2848 /* Resources */,
 				85E0C7121C6FAB0A003215B1 /* Main.storyboard */,
 				85E0C7151C6FAB0A003215B1 /* Assets.xcassets */,
@@ -291,6 +294,7 @@
 				85EC19931D731DCF0051AB13 /* SwiftSpinner.swift in Sources */,
 				85E0C72F1C6FAD6E003215B1 /* Competitive.swift in Sources */,
 				85E0C7111C6FAB0A003215B1 /* GameViewController.swift in Sources */,
+				85F6903D1D8D62BA007736F3 /* SKTAudio.swift in Sources */,
 				85E0C70B1C6FAB0A003215B1 /* AppDelegate.swift in Sources */,
 				85E0C7311C6FADF4003215B1 /* Maze.swift in Sources */,
 			);
@@ -426,6 +430,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = YF3223BV8A;
 				INFOPLIST_FILE = "Maze-man/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ru.mistin.mazeman;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -443,6 +448,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				DEVELOPMENT_TEAM = YF3223BV8A;
 				INFOPLIST_FILE = "Maze-man/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 9.3;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = ru.mistin.mazeman;
 				PRODUCT_NAME = "$(TARGET_NAME)";

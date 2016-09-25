@@ -25,6 +25,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     override func loadView() {
         self.view = SKView(frame: UIScreen.main.applicationFrame)
     }
+    
     override func viewDidLoad() {
         NotificationCenter.default.addObserver(self, selector: #selector(FreeViewController.mPlayer), name: NSNotification.Name("mult player"), object: nil)
         
@@ -73,6 +74,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         NSLog("Error finding match: \(error.localizedDescription)")
     }
     func matchmakerViewController(_ viewController: GKMatchmakerViewController, didFind match: GKMatch) { //Когда все подключились и готовы играть
+        resetAllVars() //Обнуляем все старые значения (если остались с прошлой игры)
         self.match = match
         scene!.match = match
         self.match!.delegate = self
@@ -81,8 +83,9 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             loadingView!.isHidden = false
             SwiftSpinner.show(title: "Loading", animated: true)
             viewController.dismiss(animated: true, completion: nil)
-            self.match!.chooseBestHostingPlayer(completionHandler: foundBestHostingPlayer)
-            //Узнаём ник нашему противника
+            //self.match!.chooseBestHostingPlayer(completionHandler: foundBestHostingPlayer)
+            determineHost()
+            //Узнаём ник нашего противника
             for player in match.players {
                 if player.playerID != GKLocalPlayer.localPlayer().playerID {
                     scene!.rivalName = player.displayName!
@@ -97,20 +100,27 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         case GKPlayerConnectionState.stateConnected:
             print(player.displayName, " подключился к игре")
         case GKPlayerConnectionState.stateDisconnected:
-            print(player.displayName!, " отключился")
-            scene!.bgBasic?.removeFromParent()
-            scene!.upperLayer!.position.y = scene!.size.height / 2
-            scene!.upperLayer!.isHidden = false
-            scene!.exitButton!.isHidden = true
-            NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
+            if scene!.iLeft {
+                print("Я покинул игру (и проиграл)")
+                scene!.upperLayer!.position = CGPoint(x: scene!.size.width / 2, y: scene!.size.height / 2)
+                scene!.upperLayer!.isHidden = false
+                scene!.bgBasic?.removeFromParent()
+                scene!.exitButton.isHidden = true
+                scene!.winnerBg?.isHidden = true
+            } else {
+                print(player.displayName!, " отключился")
+                scene!.iAmWinner = true
+                scene!.showWinnerBg() //Показываем экран с победителем
+                //Показываем статус, что противник отключился
+                scene!.infoLabel?.fontColor = UIColor.red
+                scene!.infoLabel?.text = player.displayName! + " покинул игру."
+                scene!.infoLabel?.isHidden = false
+                scene!.playMoreButton.alpha = 0.5
+            }
         default: break
         }
     }
     
-    //Когда мы получаем данные от других пользователей
-    //Сначала получаем пакет с лабиринтом
-    //Потом с настройками (скин противникаа, скорость и что-то ешё)
-    //Потом побайтно получаем направление соперника и др. геймплейную информацию
     func match(_ match: GKMatch, didReceiveData data: NSData, fromRemotePlayer player: GKPlayer) {
         //Первое что мы должны получить - массив лабиринта
         if !haveMaze {
@@ -147,17 +157,12 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             if scene!.upperLayer!.isHidden == false {
                 scene!.upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
                     self.scene!.upperLayer!.isHidden = true
-                    self.scene!.exitButton!.isHidden = false
+                    self.scene!.exitButton.isHidden = false
                     self.scene!.stopPlaying = false
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
                 })]))
             } else if scene!.winnerBg?.isHidden == false {
-                scene!.winnerBg!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
-                    self.scene!.winnerBg!.isHidden = true
-                    //self.scene!.winnerBg!.removeFromParent() //Удаляем весь этот фон, так как потом мы его снова добавляем
-                    self.scene!.stopPlaying = false
-                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
-                })]))
+                scene!.hideWinnerBg() //Убираем winnerBg
             }
         } else if !haveRivalInfo {
             loadingView!.isHidden = true
@@ -196,20 +201,21 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
                 scene!.rivalWantPlayMore = nil //Обнуляем данные
                 scene!.iWantPlayMore = false
                 self.scene!.winnerBg?.removeFromParent() //Удаляем весь этот фон, так как потом мы его снова добавляем
-                scene!.addWinnerBg()
+                self.scene!.winnerBg = nil
+                scene!.showWinnerBg()
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
             case 6: print("Соперник предлагает сыграть ещё раз")
+                if !scene!.iWantPlayMore {
+                    scene!.infoLabel!.isHidden = false
+                    scene!.infoLabel!.text = match.players[0].displayName! + " предлагает сыграть ещё раз."
+                    scene!.infoLabel!.fontColor = UIColor.green
+                }
                 scene!.rivalWantPlayMore = true
                 haveRivalInfo = false //Мало ли за это время плеер успел что-то изменить (скорость, скин)
                 haveMaze = false
-                /*if scene!.iWantPlayMore == true {
-                    if scene!.iAmHost {
-                        haveMaze = true
-                        scene!.forBestHost()
-                    }
-                }*/
                 if scene!.iAmHost {
                     haveMaze = true
+                    //NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
                     if scene!.iWantPlayMore == true {
                         scene!.forBestHost()
                     }
@@ -231,6 +237,46 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         }
     }
     
+    //Определяем хоста (почти рандомно)
+    func determineHost() {
+        print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
+        print("Rival is: ", self.match!.players[0].playerID!)
+        if GKLocalPlayer.localPlayer().playerID! > self.match!.players[0].playerID! {
+            print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
+            scene!.iAmHost = true
+            scene!.forBestHost()
+            haveMaze = true
+        }
+    }
+    
+    
+    //Обнуляем все переменные для следующего мультиплеера
+    func resetAllVars() {
+        match = nil
+        iAmHost = false
+        haveMaze = false
+        haveRivalInfo = false
+        
+        scene!.maze = nil
+        scene!.bgBasic = nil
+        scene!.oldFingerPosition = nil
+        scene!.resolution = false
+        scene!.stopPlaying = true
+        
+        scene!.iAmWinner = false
+        
+        scene!.match = nil
+        scene!.iAmHost = false
+        scene!.rivalWantPlayMore = nil
+        scene!.iWantPlayMore = false
+        scene!.iLeft = false
+    }
+    
+    
+    
+    
+    
+    //Это уже не успользуем
     func foundBestHostingPlayer(player: GKPlayer?) {
         if let bestHosting = player {
             print(player!.displayName!, " выбран сервером игры")
@@ -245,6 +291,8 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
         }  else {
             print("Не удалось определить сервер игры")
             print("поэтому...это сделает рандом")
+            print("I'm: ", GKLocalPlayer.localPlayer().playerID!)
+            print("Rival is: ", self.match!.players[0].playerID!)
             //scene!.match = match
             if GKLocalPlayer.localPlayer().playerID! > self.match!.players[0].playerID! {
                 print(GKLocalPlayer.localPlayer().displayName, " выбран сервером игры")
@@ -254,8 +302,6 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             }
         }
     }
-    
-    //Получилось так, что у одного 
     
     /*func forBestHost(player: GKPlayer) {
         print(player.displayName!, " выбран сервером игры")

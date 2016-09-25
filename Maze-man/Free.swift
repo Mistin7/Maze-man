@@ -14,7 +14,7 @@ import UIKit
 class Free: SKScene {
     var maze: Maze?
     var bgBasic: SKSpriteNode?
-    var exitButton: SKSpriteNode? //Поменять на картинку паузы
+    var exitButton = SKSpriteNode(imageNamed: "close") //Поменять на картинку паузы
     
     var oldFingerPosition: CGPoint? = nil
     var resolution: Bool = false
@@ -27,7 +27,7 @@ class Free: SKScene {
     //var upperLayer = SKSpriteNode()
     var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
-    var nameMode = SKLabelNode(text: "Free mode")
+    var nameMode = SKLabelNode(text: "Мультиплеер")
     var playButton = SKSpriteNode(imageNamed: "playButton")
     
     //То что после раунда мультиплеера
@@ -35,11 +35,19 @@ class Free: SKScene {
     var playMoreButton = SKSpriteNode(imageNamed: "playButton2")
     var rivalName: String?
     var iAmWinner: Bool? = false //Не забывать обнулять некоторые значения при новой игре (в том числе и iAmWinner, перед началом новой игры, делать его значение false)
+    var winnerNameLabel: SKLabelNode? //Показываем имя победителя (надо было вынести из блока addWinnerBg для доступа в showWinnerBg)
+    var infoLabel: SKLabelNode?
     
     var match: GKMatch?
     var iAmHost: Bool = false //Наш телефон сервер или нет
     var rivalWantPlayMore: Bool?
     var iWantPlayMore: Bool = false
+    var iLeft: Bool = false //Чтобы опрелить отключился я или cоперник
+    
+    let defaults = UserDefaults.standard
+    
+    //Различная озвучка
+    var clickSound: SKAction?
     
     override init(size: CGSize) {
         super.init(size: size)
@@ -72,7 +80,7 @@ class Free: SKScene {
         upperLayer!.addChild(logo)
         
         nameMode.fontColor = UIColor.black
-        nameMode.fontSize = 44
+        nameMode.fontSize = 34
         nameMode.fontName = "Tahoma"
         
         nameMode.position = CGPoint(x: 0, y: 170)
@@ -82,6 +90,9 @@ class Free: SKScene {
         playButton.size = CGSize(width: 250, height: 110)
         playButton.position = CGPoint(x: 0, y: -150)
         upperLayer!.addChild(playButton)
+        
+        //Добавляем различную озвучку
+        clickSound = SKAction.playSoundFileNamed("sounds/click.mp3", waitForCompletion: false)
     }
     
     override func update(_ currentTime: TimeInterval) {
@@ -297,9 +308,30 @@ class Free: SKScene {
             let location = touch.location(in: self)
             switch atPoint(location) {
             case playButton:
+                if defaults.bool(forKey: "sound") {
+                    run(clickSound!)
+                }
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "mult player"), object: self)
-            case exitButton!: //break
-                match!.disconnect()
+            case exitButton:
+                if defaults.bool(forKey: "sound") {
+                    run(clickSound!)
+                }
+                if match!.players.count != 0 { //Если я хочу ливнуть (соперник ещё не ливнул)
+                    iLeft = true
+                    match!.disconnect()
+                    resolution = false
+                    stopPlaying = true
+                    NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
+                } else { //Если соперник уже ливнул
+                    match!.disconnect()
+                    upperLayer!.position = CGPoint(x: scene!.size.width / 2, y: scene!.size.height / 2)
+                    upperLayer!.isHidden = false
+                    bgBasic?.removeFromParent()
+                    exitButton.isHidden = true
+                    resolution = false
+                    hideWinnerBg()
+                    stopPlaying = true
+                }
                 //При нажатии на эту кнопку должно поялвяться окно с уточнением
                 /*if stopPlaying {
                     stopPlaying = false
@@ -309,35 +341,50 @@ class Free: SKScene {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
                 }*/
             case playMoreButton:
-                print("Хочу ещё сыграть (с тем же)")
-                iWantPlayMore = true
-                iAmWinner = false
-                if rivalWantPlayMore == true { //Если соперник уже тоже хочет
-                    //Даём знать что я тоже готов играть ещё
-                    do {
-                        try match!.sendData(toAllPlayers: NSData(bytes: [6] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
-                    } catch {
-                        print("Some error in sendData")
-                    }
-                    if iAmHost {
-                        forBestHost()
-                    }
-                    //oneMoreMatch()
-                } else if rivalWantPlayMore == false { //Если соперник не хочет то конец
-                    //Тут заканчиваем игру с тем плеером так как он больше не будет и выводим на главный экран
-                } else if rivalWantPlayMore == nil { //Если соперник ещё не решил, отправляем ему запрос
-                    //Здесь должен отправлять запрос на подтверждение ещё одной игры второму парню
-                    do {
-                        try match!.sendData(toAllPlayers: NSData(bytes: [6] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
-                    } catch {
-                        print("Some error in sendData")
-                    }
-                    print("Запрос на ещё одну игру отправлен")
-                    print("Ждём подтверждения второго игрока")
+                if defaults.bool(forKey: "sound") {
+                    run(clickSound!)
                 }
-                //Если мне приходит запрос, то у меня пишется, что-то типа "Тот чувак хочет ещё с вами сыграть, не хотите?"
-                //Или типа тот чувак ушёл (ливнул) и кнопка playMoreButton не активна
-                //Потом хост игры строит новый лабиринт и отправляет второму и т.д.
+                //чтобы я мог только один раз нажать на эту кнопку
+                if match!.players.count == 0 {
+                    print("Соперник отключился, мы не можем больше с ним сыграть")
+                } else {
+                    if !iWantPlayMore  {
+                        print("Хочу ещё сыграть (с тем же)")
+                        iWantPlayMore = true
+                        iAmWinner = false
+                        if rivalWantPlayMore == true { //Если соперник уже тоже хочет
+                            //Даём знать что я тоже готов играть ещё
+                            do {
+                                try match!.sendData(toAllPlayers: NSData(bytes: [6] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
+                            } catch {
+                                print("Some error in sendData")
+                            }
+                            if iAmHost {
+                                forBestHost()
+                            }
+                        } else if rivalWantPlayMore == false { //Если соперник не хочет то конец
+                            //Тут заканчиваем игру с тем плеером так как он больше не будет и выводим на главный экран
+                            infoLabel!.isHidden = false
+                            infoLabel!.text = self.match!.players[0].displayName! + " покинул игру."
+                            infoLabel!.fontColor = UIColor.red
+                        } else if rivalWantPlayMore == nil { //Если соперник ещё не решил, отправляем ему запрос
+                            //Здесь должен отправлять запрос на подтверждение ещё одной игры второму парню
+                            do {
+                                try match!.sendData(toAllPlayers: NSData(bytes: [6] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
+                            } catch {
+                                print("Some error in sendData")
+                            }
+                            print("Запрос на ещё одну игру отправлен")
+                            print("Ждём подтверждения второго игрока")
+                            infoLabel!.isHidden = false
+                            infoLabel!.text = "Запрос отправлен. Ждём ответа " + self.match!.players[0].displayName! + "."
+                            infoLabel!.fontColor = UIColor.gray
+                        }
+                        //Если мне приходит запрос, то у меня пишется, что-то типа "Тот чувак хочет ещё с вами сыграть, не хотите?"
+                        //Или типа тот чувак ушёл (ливнул) и кнопка playMoreButton не активна
+                        //Потом хост игры строит новый лабиринт и отправляет второму и т.д.
+                    }
+                }
             default:
                 oldFingerPosition = location
                 resolution = true
@@ -433,8 +480,7 @@ class Free: SKScene {
             print("Some error in sendData")
         }
         winnerBg?.removeFromParent() //Удаляем весь этот фон, так как потом мы его снова добавляем
-        addWinnerBg()
-        NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
+        showWinnerBg()
     }
     
     func makeMaze() {
@@ -444,18 +490,16 @@ class Free: SKScene {
     
     func addBg() {
         bgBasic = SKSpriteNode(color: UIColor(red: 25, green: 0, blue: 0, alpha: 1), size: CGSize(width: CGFloat(31 * 30), height: CGFloat(31 * 30)))
-        //bgBasic!.position = CGPoint(x: size.width / 2 + maze!.bg!.size.width / 2 - maze!.player!.position.x, y: size.height / 2 + maze!.bg!.size.height / 2 - (maze!.bg!.size.height + maze!.player!.position.y))
-        //bgBasic!.position = CGPoint(x: maze!.bg!.size.width / 2, y: size.height - maze!.bg!.size.height / 2)
         bgBasic!.position = CGPoint(x: 0, y: size.height)
-        //bgBasic!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         bgBasic!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         addChild(bgBasic!)
         
-        exitButton = SKSpriteNode(imageNamed: "close")
-        exitButton!.size = CGSize(width: 60, height: 60)
-        exitButton!.position = CGPoint(x: size.width - 80, y: size.height - 60)
-        exitButton!.zPosition = 99
-        addChild(exitButton!)
+        exitButton.size = CGSize(width: 60, height: 60)
+        exitButton.position = CGPoint(x: size.width - 80, y: size.height - 60)
+        exitButton.zPosition = 100
+        if exitButton.parent == nil {
+            addChild(exitButton)
+        }
     }
     
     func addWinnerBg() {
@@ -464,7 +508,7 @@ class Free: SKScene {
         winnerBg!.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         winnerBg!.zPosition = 99
         addChild(winnerBg!)
-        winnerBg!.isHidden = false
+        winnerBg!.isHidden = true
         
         var winnerLabel = SKLabelNode(fontNamed: "San Francisco")
         winnerLabel.text = "победил"
@@ -473,24 +517,62 @@ class Free: SKScene {
         winnerLabel.position = CGPoint(x: 0, y: 300)
         winnerBg!.addChild(winnerLabel)
         
-        var winnerNameLabel = SKLabelNode(fontNamed: "San Francisco")
-        if iAmWinner! {
+        winnerNameLabel = SKLabelNode(fontNamed: "San Francisco")
+        /*if iAmWinner! {
             winnerNameLabel.text = String(GKLocalPlayer.localPlayer().displayName!)
         } else {
             winnerNameLabel.text = String(rivalName!)
-        }
-        winnerNameLabel.position = CGPoint(x: 0, y: 250)
-        winnerNameLabel.fontColor = SKColor.white
-        winnerNameLabel.fontSize = 90.0
-        winnerNameLabel.position = CGPoint(x: 0, y: 80)
-        winnerBg!.addChild(winnerNameLabel)
+        }*/
+        winnerNameLabel!.fontColor = SKColor.white
+        winnerNameLabel!.fontSize = 90.0
+        winnerNameLabel!.position = CGPoint(x: 0, y: 80)
+        winnerBg!.addChild(winnerNameLabel!)
         
         playMoreButton.position = CGPoint(x: 0, y: -200)
+        playMoreButton.size = CGSize(width: 397, height: 136)
+        playMoreButton.alpha = 1.0
         winnerBg!.addChild(playMoreButton)
-        //Если нажимаем на эту кнопку, то мы хотим сыграть ещё раз с тем же парнем.
-        //Кидается запрос и второй чувак должен его принять (подтвердить)
-        //Короче, они оба должны нажать на эту кнопку.
-        //Если один чувак вышел, то эта кнопка становится неактивной (потемнее)
+        
+        infoLabel = SKLabelNode(fontNamed: "San Francisco")
+        infoLabel!.text = nil
+        infoLabel!.fontSize = 24
+        infoLabel!.position = CGPoint(x: 0, y: -40)
+        winnerBg!.addChild(infoLabel!)
+    }
+    
+    func showWinnerBg() {
+        if winnerBg?.isHidden == true || winnerBg == nil || winnerBg?.parent == nil {
+            winnerBg?.isHidden = false
+            if winnerBg == nil { //Если мы ещё не добавляли эти спрайты, то добвим сейчас
+                addWinnerBg()
+            } else if winnerBg?.parent == nil {
+                addChild(winnerBg!)
+            }
+            
+            //Тут настраиваем имя победителя
+            if iAmWinner! {
+                winnerNameLabel!.text = String(GKLocalPlayer.localPlayer().displayName!)
+            } else {
+                winnerNameLabel!.text = String(rivalName!)
+            }
+            
+            winnerBg!.isHidden = false
+            winnerBg!.position = CGPoint(x: size.width / 2, y: size.height / 2)
+            
+            //Останавливаем процесс игры и разрешаем промотку по view
+            stopPlaying = true
+            NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode Off"), object: self)
+        }
+    }
+    
+    func hideWinnerBg() {
+        winnerBg?.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
+            self.winnerBg?.isHidden = true
+            self.stopPlaying = false
+            if self.match!.players.count != 0 {
+                NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
+            }
+        })]))
     }
     
     //Когда мы хотим сыграть ещё раз с тем же плеером
@@ -563,7 +645,7 @@ class Free: SKScene {
         if upperLayer!.isHidden == false {
             upperLayer!.run(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -scene!.size.height), duration: 0.6), SKAction.run({
                 self.upperLayer!.isHidden = true
-                self.exitButton!.isHidden = false
+                self.exitButton.isHidden = false
                 self.stopPlaying = false
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "game mode On"), object: self)
             })]))

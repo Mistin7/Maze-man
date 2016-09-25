@@ -27,11 +27,19 @@ class GameViewController: UIViewController {
     var settingsVC: SettingsViewController?
     var competitiveVC: CompetitiveViewController?
     var freeVC: FreeViewController?
+    
+    let defaults = UserDefaults.standard
 
     override func viewDidLoad() {
         NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOn), name: NSNotification.Name("game mode On"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.gameModeOff), name: NSNotification.Name("game mode Off"), object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(GameViewController.changedCoinsCount), name: NSNotification.Name("changed coins count"), object: nil)
+        
+        //Добавляем фоновую музыку
+        SKTAudio.sharedInstance().playBackgroundMusic(filename: "sounds/bg-menu-loop.mp3")
+        if !defaults.bool(forKey: "sound") {
+            SKTAudio.sharedInstance().pauseBackgroundMusic()
+        }
         
         settingsVC = SettingsViewController()
         

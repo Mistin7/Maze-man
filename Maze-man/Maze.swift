@@ -16,7 +16,8 @@ class Maze {
     var whiteBlocks: [(i: Int, j: Int)] = [] //Все нечётные белые блоки (дорожки)
     var blockSize: CGSize? //Размер одного блока (зависит от размера экрана)
     var deadLocks: [(i: Int, j: Int)] = [] //Координаты всех тупиков
-    var arrayWithTP: [(teleport: SKShapeNode, i: Int, j: Int)] = [] //Массив с телепортами
+    //var arrayWithTP: [(teleport: SKShapeNode, i: Int, j: Int)] = [] //Массив с телепортами
+    var arrayWithTP: [(teleport: SKSpriteNode, i: Int, j: Int)] = [] //Массив с телепортами
     var arrayWithInversions: [(inversion: SKSpriteNode, i: Int, j: Int)] = [] //Массив с блоками инверсии
     var stopTimers: [(SKSpriteNode, i: Int, j: Int)] = [] //Массив со всеми таймерами на лабиринте
     var startBlockPosition: (i: Int, j: Int)
@@ -26,8 +27,8 @@ class Maze {
     var mazeSize: CGSize
     var mazePath = UIBezierPath() //CGPathCreateMutable()
     var mazeShape: SKShapeNode?
-    var startBlock: SKShapeNode? //Блок стартаx
-    var finishBlock: SKShapeNode? //Блок финиша
+    //var startBlock: SKShapeNode? //Блок стартаx
+    var finishBlock: SKSpriteNode? //Блок финиша
     //Для ускорялок
     var square: [[Bool]] //Делим лабиринт на квадраты (9на9) и если там есть ускорялка ставим true
     var speedRoads: [(i: Int, j: Int, direction: Int,backBorder: Bool)] = [] //Записываем координаты, направление ускорителя и возможность продления ускорялки назад
@@ -66,6 +67,12 @@ class Maze {
     var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"] // добавляем различные скины для сцен
     var randomScenery: String
     
+    //Различная озвучка
+    var tpSound: SKAction?
+    var timerSound: SKAction?
+    var speedUpSound: SKAction?
+    var speedDownSound: SKAction?
+    
     
     init(competitiveMod: Bool = true, blockCount: Int, startBlockI: Int = 1, startBlockJ: Int = 1, mazeSize: CGSize? = nil, finishBlockI: Int, finishBlockJ: Int, timer: Int = 0, speedRoads: Bool = false, teleports: Int = 0, inversions: Int = 0, warders: Int = 0, match: GKMatch? = nil) {
         self.blockCount = blockCount
@@ -101,9 +108,19 @@ class Maze {
             playerSettings()
             self.willPlayerPosition = player!.position
             
-            if timer > 0 { generateTimer(timer) }
-            if speedRoads { addSpeedRoads() }
-            if teleports > 0 { addTeleport(teleports * 2) }
+            if timer > 0 {
+                generateTimer(timer)
+                timerSound = SKAction.playSoundFileNamed("sounds/timer.mp3", waitForCompletion: false)
+            }
+            if speedRoads {
+                addSpeedRoads()
+                speedUpSound = SKAction.playSoundFileNamed("sounds/speedUp.m4a", waitForCompletion: false)
+                speedDownSound = SKAction.playSoundFileNamed("sounds/speedDown.mp3", waitForCompletion: false)
+            }
+            if teleports > 0 {
+                addTeleport(teleports * 2)
+                tpSound = SKAction.playSoundFileNamed("sounds/tp.mp3", waitForCompletion: false)
+            }
             //if inversions > 0 { addInversion(inversions) } //Потом добавить
             if warders > 0 { addWarders(warders) }
             addCoins()
@@ -162,6 +179,7 @@ class Maze {
         rivalPlayer!.size = blockSize!
         rivalPlayer!.position = CGPoint(x: player!.frame.width / 2 + CGFloat(playerPosition.j) * player!.frame.width, y: -player!.frame.height / 2 - CGFloat(playerPosition.i) * player!.frame.height)
         rivalPlayer!.zPosition = 5
+        rivalPlayer!.alpha = 0.5
         rivalPosition = (i: self.startBlockPosition.i, j: self.startBlockPosition.j)
         bg!.addChild(rivalPlayer!)
     }
@@ -509,51 +527,59 @@ class Maze {
         else { bg!.position = CGPoint(x: 0, y: 0) } //Если свободный, то начиная с левого верхнево угла
         bg!.anchorPoint = CGPoint(x: 0.0, y: 1.0)
         blockSize = CGSize(width: bg!.frame.width / CGFloat(blockCount!) , height: bg!.frame.width / CGFloat(blockCount!))
+        blockSize!.height = round(blockSize!.height)
+        blockSize!.width = round(blockSize!.width)
+        /*if Int(blockSize!.height) % 2 == 1 {
+            blockSize!.height -= 1
+        }
+        if Int(blockSize!.width) % 2 == 1 {
+            blockSize!.width -= 1
+        }*/
         //var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"]
         //var randomScenery: String = allSceneries[Int(random(min: 0, max: CGFloat(allSceneries.count)))]
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: randomScenery)
         for row in 1..<maze!.count-1 {
             let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-left"))
             tile.size = blockSize!
-            tile.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+            tile.position = CGPoint(x:round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
             tile.zPosition = 1
             bg!.addChild(tile)
             
             let tileright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-right"))
             tileright.size = blockSize!
-            tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+            tileright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
             bg!.addChild(tileright)
         }
         for col in 1..<maze![0].count-1 {
             let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-mid"))
             tile.size = blockSize!
-            tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
+            tile.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
             bg!.addChild(tile)
             
             let tilebot = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-mid"))
             tilebot.size = blockSize!
-            tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+            tilebot.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
             bg!.addChild(tilebot)
         }
         
         let tiletopleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-left"))
         tiletopleft.size = blockSize!
-        tiletopleft.position = CGPoint(x: blockSize!.width / 2, y: -blockSize!.height / 2)
+        tiletopleft.position = CGPoint(x: round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
         bg!.addChild(tiletopleft)
         
         let tiletopright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-top-right"))
         tiletopright.size = blockSize!
-        tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -blockSize!.height / 2)
+        tiletopright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -round(blockSize!.height / 2))
         bg!.addChild(tiletopright)
         
         let tilebotleft = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-left"))
         tilebotleft.size = blockSize!
-        tilebotleft.position = CGPoint(x: blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+        tilebotleft.position = CGPoint(x: round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
         bg!.addChild(tilebotleft)
         
         let tilebotright = SKSpriteNode(texture:atlas!.textureNamed("bgtile-bot-right"))
         tilebotright.size = blockSize!
-        tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(maze!.count-1) * blockSize!.height - blockSize!.height / 2)
+        tilebotright.position = CGPoint(x: CGFloat(maze![0].count-1) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(maze!.count-1) * blockSize!.height - round(blockSize!.height / 2))
         bg!.addChild(tilebotright)
         
         //Заполняем всё зелёными квадратами (кроме граней)
@@ -561,7 +587,7 @@ class Maze {
             for j in 1..<maze![0].count-1 {
                 let tile = SKSpriteNode(texture:atlas!.textureNamed("bgtile-main"))
                 tile.size = blockSize!
-                tile.position = CGPoint(x: CGFloat(j) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(i) * blockSize!.height - blockSize!.height / 2)
+                tile.position = CGPoint(x: CGFloat(j) * round(blockSize!.width) + round(blockSize!.width / 2), y: -CGFloat(i) * blockSize!.height - round(blockSize!.height / 2))
                 bg!.addChild(tile)
             }
         }
@@ -582,16 +608,18 @@ class Maze {
     //Выводим на экран старт и финиш
     func startAndFinishBlocks() {
         //Добавляем блок старта
-        startBlock = SKShapeNode(rectOf: blockSize!)
-        startBlock!.lineWidth = 0.0
-        startBlock!.fillColor = SKColor.white
-        startBlock!.position = CGPoint(x: blockSize!.width * CGFloat(startBlockPosition.j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(startBlockPosition.i))
-        startBlock?.zPosition = 4
-        bg!.addChild(startBlock!)
+        //startBlock = SKShapeNode(rectOf: blockSize!)
+        //startBlock!.lineWidth = 0.0
+        //startBlock!.fillColor = SKColor.white
+        //startBlock!.position = CGPoint(x: blockSize!.width * CGFloat(startBlockPosition.j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(startBlockPosition.i))
+        //startBlock?.zPosition = 4
+        //bg!.addChild(startBlock!)
         //Добавляем блок финиша
-        finishBlock = SKShapeNode(rectOf: blockSize!)
-        finishBlock!.lineWidth = 0.0
-        finishBlock!.fillColor = SKColor.red
+        //finishBlock = SKShapeNode(rectOf: blockSize!)
+        finishBlock = SKSpriteNode(imageNamed: "finishTile")
+        finishBlock!.size = blockSize!
+        //finishBlock!.lineWidth = 0.0
+        //finishBlock!.fillColor = SKColor.red
         finishBlock!.position = CGPoint(x: blockSize!.width * CGFloat(finishBlockPosition.j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(finishBlockPosition.i))
         finishBlock?.zPosition = 4
         bg!.addChild(finishBlock!)
@@ -761,9 +789,13 @@ class Maze {
                     randomDeadLockForTP = Int(random(min: 0, max: CGFloat(deadLocks.count)))
                 } while maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] != 1
                 maze![deadLocks[randomDeadLockForTP].i][deadLocks[randomDeadLockForTP].j] = UInt8(20 + i)
-                arrayWithTP.append((teleport: SKShapeNode(rectOf: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
-                arrayWithTP[i].teleport.fillColor = fillColorTP(i)
-                arrayWithTP[i].teleport.lineWidth = 0.0
+                //arrayWithTP.append((teleport: SKShapeNode(rectOf: blockSize!), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
+                arrayWithTP.append((teleport: SKSpriteNode(imageNamed: "tp1"), i: deadLocks[randomDeadLockForTP].i, j: deadLocks[randomDeadLockForTP].j))
+                //arrayWithTP[i].teleport.fillColor = fillColorTP(i)
+                //arrayWithTP[i].teleport.lineWidth = 0.0
+                arrayWithTP[i].teleport.texture = imageTP(i)
+                arrayWithTP[i].teleport.size = blockSize!
+                arrayWithTP[i].teleport.run(SKAction.repeatForever(SKAction.rotate(byAngle: 2*Pi, duration: 0.8)))
                 arrayWithTP[i].teleport.position = CGPoint(x: blockSize!.width * CGFloat(deadLocks[randomDeadLockForTP].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(deadLocks[randomDeadLockForTP].i))
                 arrayWithTP[i].teleport.zPosition = 3
                 deadLocks.remove(at: randomDeadLockForTP)
@@ -772,7 +804,7 @@ class Maze {
         }
     }
     //добавляем цвет телепортам
-    func fillColorTP(_ number: Int) -> SKColor{
+    /*func fillColorTP(_ number: Int) -> SKColor{
         switch number{
         case 0,1: return SKColor.brown
         case 2,3: return SKColor.yellow
@@ -781,6 +813,16 @@ class Maze {
         default: break
         }
         return SKColor.brown
+    }*/
+    
+    //добавляем цвет телепортам
+    func imageTP(_ number: Int) -> SKTexture {
+        switch number{
+        case 0,1: return SKTexture(imageNamed: "tp1")
+        case 2,3: return SKTexture(imageNamed: "tp2")
+        default: break
+        }
+        return SKTexture(imageNamed: "tp1")
     }
     
     //Добавляем монетки
@@ -927,7 +969,7 @@ class Maze {
                     //sprite.blendMode = .Replace
                     sprite.size = blockSize!
                 }
-                tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + blockSize!.width / 2, y: -CGFloat(row) * blockSize!.height - blockSize!.height / 2)
+                tile!.position = CGPoint(x: CGFloat(col) * blockSize!.width + round(blockSize!.width / 2), y: -CGFloat(row) * blockSize!.height - round(blockSize!.height / 2))
                 tile!.zPosition = 2
                 bg!.addChild(tile!)
             }
@@ -1052,6 +1094,10 @@ class Maze {
     
     //Телепортируем плеера к другому телепорту
     func teleportation() {
+        if defaults.bool(forKey: "sound") {
+            bg!.run(tpSound!)
+        }
+        print(defaults.bool(forKey: "sound"))
         if (maze![playerPosition.i][playerPosition.j] % 2) == 0 {
             player!.position = arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].teleport.position
             teleportExit(arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].i, j: arrayWithTP[Int(maze![playerPosition.i][playerPosition.j]) - 19].j)
@@ -1095,12 +1141,24 @@ class Maze {
                 }
             }
             switch maze![playerPosition.i][playerPosition.j] {
-            case 2: useSpeedRoad()
+            case 2:
+                if defaults.bool(forKey: "sound") && kSpeed != 1.7 {
+                    bg!.run(speedUpSound!)
+                }
+                useSpeedRoad()
             case 4:
+                if /*maze![playerPosition.i + 1][playerPosition.j] != 4 ||*/ kSpeed != 0.2 {
+                    if defaults.bool(forKey: "sound") {
+                        bg!.run(speedDownSound!)
+                    }
+                }
                 endUseSpeedRoad()
                 kSpeed = 0.2
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1139,12 +1197,24 @@ class Maze {
                 }
             }
             switch maze![playerPosition.i][playerPosition.j] {
-            case 3: useSpeedRoad()
+            case 3:
+                if defaults.bool(forKey: "sound") && kSpeed != 1.7 {
+                    bg!.run(speedUpSound!)
+                }
+                useSpeedRoad()
             case 5:
+                if /*maze![playerPosition.i][playerPosition.j - 1] != 5 ||*/ kSpeed != 0.2 {
+                    if defaults.bool(forKey: "sound") {
+                        bg!.run(speedDownSound!)
+                    }
+                }
                 endUseSpeedRoad()
                 kSpeed = 0.2
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1184,11 +1254,23 @@ class Maze {
             }
             switch maze![playerPosition.i][playerPosition.j] {
             case 2:
+                if /*maze![playerPosition.i - 1][playerPosition.j] != 2 ||*/ kSpeed != 0.2 {
+                    if defaults.bool(forKey: "sound") {
+                        bg!.run(speedDownSound!)
+                    }
+                }
                 endUseSpeedRoad()
                 kSpeed = 0.2
-            case 4: useSpeedRoad()
+            case 4:
+                if defaults.bool(forKey: "sound") && kSpeed != 1.7 {
+                    bg!.run(speedUpSound!)
+                }
+                useSpeedRoad()
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1227,11 +1309,23 @@ class Maze {
             }
             switch maze![playerPosition.i][playerPosition.j] {
             case 3:
+                if /*maze![playerPosition.i][playerPosition.j + 1] != 3 ||*/ kSpeed != 0.2 {
+                    if defaults.bool(forKey: "sound") {
+                        bg!.run(speedDownSound!)
+                    }
+                }
                 endUseSpeedRoad()
                 kSpeed = 0.2
-            case 5: useSpeedRoad()
+            case 5:
+                if defaults.bool(forKey: "sound") && kSpeed != 1.7 {
+                    bg!.run(speedUpSound!)
+                }
+                useSpeedRoad()
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![playerPosition.i][playerPosition.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1279,9 +1373,13 @@ class Maze {
             case 2: useSpeedRoad()
             case 4:
                 endUseSpeedRoad()
+                //bg!.run(speedDownSound!)
                 kSpeed = 0.2
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![rivalPosition!.i][rivalPosition!.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1323,9 +1421,13 @@ class Maze {
             case 3: useSpeedRoad()
             case 5:
                 endUseSpeedRoad()
+                //bg!.run(speedDownSound!)
                 kSpeed = 0.2
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![rivalPosition!.i][rivalPosition!.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1365,10 +1467,14 @@ class Maze {
             switch maze![rivalPosition!.i][rivalPosition!.j] {
             case 2:
                 endUseSpeedRoad()
+                //bg!.run(speedDownSound!)
                 kSpeed = 0.2
             case 4: useSpeedRoad()
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![rivalPosition!.i][rivalPosition!.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1408,10 +1514,14 @@ class Maze {
             switch maze![rivalPosition!.i][rivalPosition!.j] {
             case 3:
                 endUseSpeedRoad()
+                //bg!.run(speedDownSound!)
                 kSpeed = 0.2
             case 5: useSpeedRoad()
             case 6:
                 playTimer = false
+                if defaults.bool(forKey: "sound") {
+                    bg!.run(timerSound!)
+                }
                 Timer.scheduledTimer(timeInterval: 4, target: self, selector: #selector(Maze.switchTimer), userInfo: nil, repeats: false)
                 maze![rivalPosition!.i][rivalPosition!.j] = 1
                 for (number, i) in stopTimers.enumerated() {
@@ -1514,7 +1624,9 @@ class Maze {
                 if warderVariants[randomWarder].i == startBlockPosition.i && warderVariants[randomWarder].j == startBlockPosition.j { //Если смотритель стартует с точки старта плеера, то не добавляем его
                     break
                 }
-                let warder = SKSpriteNode(color: UIColor.orange, size: blockSize!)
+                //let warder = SKSpriteNode(color: UIColor.orange, size: blockSize!)
+                let warder = SKSpriteNode(imageNamed: "robot")
+                warder.size = blockSize!
                 warder.name = "warder"
                 warder.position = CGPoint(x: blockSize!.width * CGFloat(warderVariants[randomWarder].j) + blockSize!.width / 2, y: -blockSize!.height / 2 - blockSize!.height * CGFloat(warderVariants[randomWarder].i))
                 warder.zPosition = 6
@@ -1522,12 +1634,12 @@ class Maze {
                 
                 //Тут заставляем его двигаться (туда и обратно, так вечно)
                 switch warderVariants[randomWarder].direction {
-                case 0: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
+                case 0: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 0.5}), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 1.5}), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 case 1: print("Вправо")
-                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
-                case 2: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
+                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 0}), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 1}), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
+                case 2: warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 1.5}), SKAction.move(by: CGVector(dx: 0, dy: -CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 0.5}), SKAction.move(by: CGVector(dx: 0, dy: CGFloat(pathLength) * blockSize!.height), duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 case 3: print("Влево")
-                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
+                    warder.run(SKAction.repeatForever(SKAction.sequence([SKAction.run({warder.zRotation = Pi * 1}), SKAction.moveBy(x: -CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8), SKAction.run({warder.zRotation = Pi * 0}), SKAction.moveBy(x: CGFloat(pathLength) * blockSize!.width, y: 0, duration: 0.5 * Double(pathLength)), SKAction.wait(forDuration: 0.8)])))
                 default: break
                 }
                 //warder.runAction(SKAction.repeatActionForever(SKAction.sequence([])))

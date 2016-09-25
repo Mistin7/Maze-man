@@ -2,11 +2,11 @@
   "images" : [
     {
       "idiom" : "universal",
-      "filename" : "progressbar-stats.png",
       "scale" : "1x"
     },
     {
       "idiom" : "universal",
+      "filename" : "progressbar-stats.png",
       "scale" : "2x"
     },
     {
