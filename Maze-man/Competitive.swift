@@ -71,8 +71,6 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     }
     
     override func didMove(to view: SKView) {
-        defaults.set(0, forKey: "points")
-        
         //Всё что идёт поверх карты перед началом игры
         var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
         upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)

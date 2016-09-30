@@ -442,7 +442,7 @@ class Free: SKScene {
     }
     
     func makeMaze() {
-        maze = Maze(competitiveMod: false, blockCount: 31, startBlockI: 1, startBlockJ: 1, finishBlockI: 29, finishBlockJ: 29, timer: 1, speedRoads: false, teleports: 2, inversions: 1, warders: 1, match: match)
+        maze = Maze(competitiveMod: false, blockCount: 51, startBlockI: 1, startBlockJ: 1, finishBlockI: 49, finishBlockJ: 49, timer: 1, speedRoads: false, teleports: 2, inversions: 1, warders: 1, match: match)
     }
     
     func addBg() {
