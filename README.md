@@ -12,5 +12,5 @@ Maze-man - простое приложение под IOS, в котором В�
 
 ![Alt text](http://maze-man.mistin.ru/images/1.png "Главное меню")
 ![Alt text](http://maze-man.mistin.ru/images/2.png "Проходим классический режим")
-![Alt text](http://maze-man.mistin.ru/images/6.png "Поднимаем уровень")
-![Alt text](http://maze-man.mistin.ru/images/4.png "Играем в мультиплеер")
+![Alt text](http://maze-man.mistin.ru/images/3.png "Поднимаем уровень")
+![Alt text](http://maze-man.mistin.ru/images/6.png "Играем в мультиплеер")
