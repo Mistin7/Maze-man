@@ -20,9 +20,7 @@ class Settings: SKScene {
     var speedLineMask = SKSpriteNode() //Через неё видна полоса скорости
     let statsPrice: [Int] = [15,20,25,35,45,60,75,90,120,150,180,220,260,300,340,380,430,480,540,600] //Сколько стоят уровни соответственно
     
-    
-    
-    //Различная озвучка
+    //MARK: Различная озвучка
     var clickSound: SKAction?
     
     let defaults = UserDefaults.standard
@@ -41,7 +39,7 @@ class Settings: SKScene {
         speedIcon.size = CGSize(width: 64, height: 64)
         statsBg.addChild(speedIcon)
         
-        var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 365, height: 38)), cornerRadius: 4) //Задаём форму закруглёного фона прогрессбара скорости
+        let RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 365, height: 38)), cornerRadius: 4) //Задаём форму закруглёного фона прогрессбара скорости
         speedProgressBarBg = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
         speedProgressBarBg!.position = CGPoint(x: -20, y: -70)
         speedProgressBarBg!.lineWidth = 0.0
@@ -54,7 +52,7 @@ class Settings: SKScene {
         speedLineMask = SKSpriteNode(color: UIColor.black, size: CGSize(width: speedProgressBar.size.width + 5, height: speedProgressBar.size.height)) //+10 - 2 отступа (не 1 для симметрии)
         speedLineMask.anchorPoint = CGPoint(x: 0.0, y: 0.5)
         //Тут с CGFloat() тутфтология, так как компилятор иначе ругается. Потом исправить на норм
-        var countLinesSpeed: CGFloat = CGFloat(defaults.integer(forKey: "speed") / 5) * CGFloat(18) //Сколько полосочек будет показываться, умноженное на 18px (на сколько px двигаем)
+        let countLinesSpeed: CGFloat = CGFloat(defaults.integer(forKey: "speed") / 5) * CGFloat(18) //Сколько полосочек будет показываться, умноженное на 18px (на сколько px двигаем)
         speedLineMask.position = CGPoint(x: -speedProgressBar.size.width * 1.5 - 6 + countLinesSpeed, y: 0) //1 шаг - 18px (зелёная(13px)+отступ справа целиком(5px))
         
         speedCropNode.addChild(speedProgressBar)

@@ -10,7 +10,7 @@ import SpriteKit
 import GameKit
 
 class Competitive: SKScene, GKGameCenterControllerDelegate {
-    //То что будет поверх всего перед началом игры
+    //MARK: То что будет поверх всего перед началом игры
     var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
     var playButton = SKSpriteNode(imageNamed: "playButton")
@@ -18,6 +18,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     var soundButton = SKSpriteNode(imageNamed: "soundOn")
     var nameMode = SKLabelNode(text: "Классический режим")
     
+    //MARK: Основа лабиринта
     var maze: Maze?
     var bgBasic: SKSpriteNode?
     var oldFingerPosition: CGPoint? = nil
@@ -27,7 +28,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     var dt = 0.0
     var stopPlaying = true
     
-    //Секундомер
+    //MARK: Секундомер
     var count: Double = 0.0
     var timer = Timer()
     var timeLabel = SKLabelNode()
@@ -37,7 +38,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     
     var coinsCountLabel = SKLabelNode()  //Текст с количеством монет
     
-    //Результат после финиша
+    //MARK: Результат после финиша
     var resultBg: SKSpriteNode?
     var continueButton = SKSpriteNode(imageNamed: "playButton2")
     var plusPercent = SKLabelNode(fontNamed: "Myriad Pro")
@@ -53,7 +54,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     var soundButtonResultBg = SKSpriteNode(imageNamed: "soundOn")
     var leadersButtonResultBg = SKSpriteNode(imageNamed: "leadersButton")
     
-    //Различная озвучка
+    //MARK: Различная озвучка
     var coinSound: SKAction?
     var clickSound: SKAction?
     var hitSound: SKAction?
@@ -72,7 +73,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     
     override func didMove(to view: SKView) {
         //Всё что идёт поверх карты перед началом игры
-        var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
+        let RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
         upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
         upperLayer!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         upperLayer!.lineWidth = 0.0
@@ -191,7 +192,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -202,7 +203,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -213,7 +214,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -224,7 +225,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                         maze!.moveResolution = true
                         maze!.stopPlayerAnimation()
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -306,33 +307,33 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
                     dtLine = CGPoint(x: location.x - oldFingerPosition!.x, y: location.y - oldFingerPosition!.y)
                     if dtLine!.y > dtLine!.x && dtLine!.y > -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(0, playerSpeadChange: true)
+                            maze!.movePlayer(0, playerspeedChange: true)
                         } else if maze!.moveResolution == false && maze!.willPlayerPosition.y < maze!.player!.position.y {
-                            maze!.movePlayer(0, playerSpeadChange: false)
+                            maze!.movePlayer(0, playerspeedChange: false)
                         } else {
                             maze!.willPlayerDirection = 0
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y > -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(1, playerSpeadChange: true)
+                            maze!.movePlayer(1, playerspeedChange: true)
                         } else if maze!.moveResolution == false && (maze!.willPlayerPosition.x < maze!.player!.position.x) {
-                            maze!.movePlayer(1, playerSpeadChange: false)
+                            maze!.movePlayer(1, playerspeedChange: false)
                         } else {
                             maze!.willPlayerDirection = 1
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y < -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(2, playerSpeadChange: true)
+                            maze!.movePlayer(2, playerspeedChange: true)
                         } else if maze!.moveResolution == false && maze!.willPlayerPosition.y > maze!.player!.position.y {
-                            maze!.movePlayer(2, playerSpeadChange: false)
+                            maze!.movePlayer(2, playerspeedChange: false)
                         } else {
                             maze!.willPlayerDirection = 2
                         }
                     } else if dtLine!.y > dtLine!.x && dtLine!.y < -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(3, playerSpeadChange: true)
+                            maze!.movePlayer(3, playerspeedChange: true)
                         } else if maze!.moveResolution == false && maze!.willPlayerPosition.x > maze!.player!.position.x {
-                            maze!.movePlayer(3, playerSpeadChange: false)
+                            maze!.movePlayer(3, playerspeedChange: false)
                         } else {
                             maze!.willPlayerDirection = 3
                         }
@@ -344,7 +345,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
         }
     }
     func weOnFinish() {
-        //print("You won")
+        print("You won")
         timer.invalidate()
         /*if count < defaults.double(forKey: "bestTime") || defaults.double(forKey: "bestTime") == 0.0 {
             defaults.set(count, forKey: "bestTime")
@@ -358,7 +359,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     }
     
     func weLosed() {
-        //print("You losed!")
+        print("You losed!")
         timer.invalidate()
         countLvlUp = 0
         showResultBg(false)
@@ -648,7 +649,7 @@ class Competitive: SKScene, GKGameCenterControllerDelegate {
     }
     
     //hides leaderboard screen
-    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController!)
+    func gameCenterViewControllerDidFinish(_ gameCenterViewController: GKGameCenterViewController)
     {
         gameCenterViewController.dismiss(animated: true, completion: nil)
         

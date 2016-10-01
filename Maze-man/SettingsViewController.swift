@@ -29,7 +29,7 @@ class SettingsViewController: UIViewController {
         skView.presentScene(scene)
 
         // Do any additional setup after loading the view.
-        var label = UILabel(frame: CGRect(x: UIScreen.main.applicationFrame.width / 2 - 315, y: UIScreen.main.applicationFrame.height / 2 - 390, width: 630, height: 850))
+        let label = UILabel(frame: CGRect(x: UIScreen.main.applicationFrame.width / 2 - 315, y: UIScreen.main.applicationFrame.height / 2 - 390, width: 630, height: 850))
         label.textAlignment = NSTextAlignment.center
         label.font = UIFont(name: "Chalkboard SE", size: 16)
         label.numberOfLines = 13

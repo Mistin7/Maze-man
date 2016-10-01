@@ -12,6 +12,7 @@ import SystemConfiguration
 import UIKit
 
 class Free: SKScene {
+    //MARK: Основа лабиринта
     var maze: Maze?
     var bgBasic: SKSpriteNode?
     var exitButton = SKSpriteNode(imageNamed: "close") //Поменять на картинку паузы
@@ -23,13 +24,13 @@ class Free: SKScene {
     var dt = 0.0
     var stopPlaying = true
     
-    //То что будет поверх всего перед началом игры
+    //MARK: То что будет поверх всего перед началом игры
     var upperLayer: SKShapeNode?
     var logo = SKSpriteNode(imageNamed: "logo")
     var nameMode = SKLabelNode(text: "Мультиплеер")
     var playButton = SKSpriteNode(imageNamed: "playButton")
     
-    //То что после раунда мультиплеера
+    //MARK: То что после раунда мультиплеера
     var winnerBg: SKSpriteNode?
     var playMoreButton = SKSpriteNode(imageNamed: "playButton2")
     var rivalName: String?
@@ -37,6 +38,7 @@ class Free: SKScene {
     var winnerNameLabel: SKLabelNode? //Показываем имя победителя (надо было вынести из блока addWinnerBg для доступа в showWinnerBg)
     var infoLabel: SKLabelNode?
     
+    //MARK: Для определения соединения
     var match: GKMatch?
     var iAmHost: Bool = false //Наш телефон сервер или нет
     var rivalWantPlayMore: Bool?
@@ -45,7 +47,7 @@ class Free: SKScene {
     
     let defaults = UserDefaults.standard
     
-    //Различная озвучка
+    //MARK: Различная озвучка
     var clickSound: SKAction?
     
     override init(size: CGSize) {
@@ -59,7 +61,7 @@ class Free: SKScene {
         backgroundColor = SKColor(red: 0, green: 0, blue: 0, alpha: 1.0)
         
         //Всё что идёт поверх карты перед началом игры
-        var RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
+        let RoundedRectPath = UIBezierPath(roundedRect: CGRect(origin: CGPoint(x: 0, y: 0), size: CGSize(width: 500, height: 800)), cornerRadius: 18) //Задаём форму закруглёного фона
         upperLayer = SKShapeNode(path: RoundedRectPath.cgPath, centered:true)
         upperLayer!.position = CGPoint(x: size.width / 2, y: size.height / 2)
         upperLayer!.lineWidth = 0.0
@@ -147,7 +149,7 @@ class Free: SKScene {
                             print("Some error in sendData")
                         }
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -168,7 +170,7 @@ class Free: SKScene {
                             print("Some error in sendData")
                         }
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -189,7 +191,7 @@ class Free: SKScene {
                             print("Some error in sendData")
                         }
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -209,7 +211,7 @@ class Free: SKScene {
                             print("Some error in sendData")
                         }
                         if maze!.willPlayerDirection != nil {
-                            maze!.movePlayer(maze!.willPlayerDirection!, playerSpeadChange: true)
+                            maze!.movePlayer(maze!.willPlayerDirection!, playerspeedChange: true)
                             maze!.willPlayerDirection = nil
                         }
                     }
@@ -237,7 +239,7 @@ class Free: SKScene {
                         maze!.moveRivalResolution = true
                         //maze!.stopPlayerAnimation()
                         if maze!.willRivalDirection != nil {
-                            maze!.moveRival(maze!.willRivalDirection!, playerSpeadChange: true)
+                            maze!.moveRival(maze!.willRivalDirection!, playerspeedChange: true)
                             maze!.willRivalDirection = nil
                         }
                     }
@@ -248,7 +250,7 @@ class Free: SKScene {
                         maze!.moveRivalResolution = true
                         //maze!.stopPlayerAnimation()
                         if maze!.willRivalDirection != nil {
-                            maze!.moveRival(maze!.willRivalDirection!, playerSpeadChange: true)
+                            maze!.moveRival(maze!.willRivalDirection!, playerspeedChange: true)
                             maze!.willRivalDirection = nil
                         }
                     }
@@ -259,7 +261,7 @@ class Free: SKScene {
                         maze!.moveRivalResolution = true
                         //maze!.stopPlayerAnimation()
                         if maze!.willRivalDirection != nil {
-                            maze!.moveRival(maze!.willRivalDirection!, playerSpeadChange: true)
+                            maze!.moveRival(maze!.willRivalDirection!, playerspeedChange: true)
                             maze!.willRivalDirection = nil
                         }
                     }
@@ -270,7 +272,7 @@ class Free: SKScene {
                         maze!.moveRivalResolution = true
                         //maze!.stopPlayerAnimation()
                         if maze!.willRivalDirection != nil {
-                            maze!.moveRival(maze!.willRivalDirection!, playerSpeadChange: true)
+                            maze!.moveRival(maze!.willRivalDirection!, playerspeedChange: true)
                             maze!.willRivalDirection = nil
                         }
                     }
@@ -375,7 +377,7 @@ class Free: SKScene {
                     dtLine = CGPoint(x: location.x - oldFingerPosition!.x, y: location.y - oldFingerPosition!.y)
                     if dtLine!.y > dtLine!.x && dtLine!.y > -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(0, playerSpeadChange: true)
+                            maze!.movePlayer(0, playerspeedChange: true)
                             //Отправляем сопернику, что наш плеер должен двигаться вверх прям щас
                             do {
                                 try match!.sendData(toAllPlayers: NSData(bytes: [0] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
@@ -387,7 +389,7 @@ class Free: SKScene {
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y > -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(1, playerSpeadChange: true)
+                            maze!.movePlayer(1, playerspeedChange: true)
                             do {
                                 try match!.sendData(toAllPlayers: NSData(bytes: [1] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
                             } catch {
@@ -398,7 +400,7 @@ class Free: SKScene {
                         }
                     } else if dtLine!.y < dtLine!.x && dtLine!.y < -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(2, playerSpeadChange: true)
+                            maze!.movePlayer(2, playerspeedChange: true)
                             do {
                                 try match!.sendData(toAllPlayers: NSData(bytes: [2] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
                             } catch {
@@ -409,7 +411,7 @@ class Free: SKScene {
                         }
                     } else if dtLine!.y > dtLine!.x && dtLine!.y < -dtLine!.x {
                         if maze!.moveResolution == true {
-                            maze!.movePlayer(3, playerSpeadChange: true)
+                            maze!.movePlayer(3, playerspeedChange: true)
                             do {
                                 try match!.sendData(toAllPlayers: NSData(bytes: [3] as [UInt8], length: 1) as Data, with: GKMatchSendDataMode.reliable)
                             } catch {
@@ -467,7 +469,7 @@ class Free: SKScene {
         addChild(winnerBg!)
         winnerBg!.isHidden = true
         
-        var winnerLabel = SKLabelNode(fontNamed: "San Francisco")
+        let winnerLabel = SKLabelNode(fontNamed: "San Francisco")
         winnerLabel.text = "победил"
         winnerLabel.fontColor = SKColor.white
         winnerLabel.fontSize = 50.0

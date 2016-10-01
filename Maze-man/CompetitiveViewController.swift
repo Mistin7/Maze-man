@@ -11,7 +11,7 @@ import SpriteKit
 
 class CompetitiveViewController: UIViewController {
     override func loadView() {
-        self.view = SKView(frame: UIScreen.main.applicationFrame)
+        self.view = SKView(frame: UIScreen.main.bounds)
     }
     
     var scene: Competitive?

@@ -10,6 +10,7 @@ import SpriteKit
 import GameKit
 
 class Maze {
+    //MARK: Основа лабиринта
     var maze: [[UInt8]]? //Массив с блоками
     var blockCount: Int? //Кол-во блоков в строке и столбце
     var actualPoint: (i: Int, j: Int)? //Точка, в которой мы находимся сейчас (для генерации лабиринта)
@@ -22,7 +23,7 @@ class Maze {
     var stopTimers: [(SKSpriteNode, i: Int, j: Int)] = [] //Массив со всеми таймерами на лабиринте
     var startBlockPosition: (i: Int, j: Int)
     var finishBlockPosition: (i: Int, j: Int)
-    //Для вывода на экран лабиринта
+    //MARK: Для вывода на экран лабиринта
     var bg: SKSpriteNode?
     var mazeSize: CGSize
     var mazePath = UIBezierPath() //CGPathCreateMutable()
@@ -32,11 +33,11 @@ class Maze {
     //Для ускорялок
     var square: [[Bool]] //Делим лабиринт на квадраты (9на9) и если там есть ускорялка ставим true
     var speedRoads: [(i: Int, j: Int, direction: Int,backBorder: Bool)] = [] //Записываем координаты, направление ускорителя и возможность продления ускорялки назад
-    //Всё, что связано с плеером
+    //MARK: Всё, что связано с плеером
     var player: SKSpriteNode?
     let playerAnimation: SKAction //Для анимации плеера
     var playerPosition: (i: Int, j: Int)
-    //Всё для движения плеера
+    // MARK: Всё для движения плеера
     var willPlayerPosition: CGPoint!
     var willPlayerDirection: Int?
     var playerSpeed: CGFloat?
@@ -50,10 +51,9 @@ class Maze {
     var competitiveMod: Bool //Если режим лабиринта соревновательный, то true, если свободный - false
     let defaults = UserDefaults.standard
     
-    //Всё для мультиплеера
-    //Для мультиплеера соперник
-    var rivalPlayer: SKSpriteNode?
+    //MARK: Всё для мультиплеера
     //Всё для движения плеера соперника
+    var rivalPlayer: SKSpriteNode?
     var rivalPosition: (i: Int, j: Int)?
     var willRivalPosition: CGPoint?
     var willRivalDirection: Int?
@@ -67,7 +67,7 @@ class Maze {
     var allSceneries: [String] = ["scenery-dust","scenery-green","scenery-snow"] // добавляем различные скины для сцен
     var randomScenery: String
     
-    //Различная озвучка
+    //MARK: Различная озвучка
     var tpSound: SKAction?
     var timerSound: SKAction?
     var speedUpSound: SKAction?
@@ -98,11 +98,9 @@ class Maze {
         playerAnimation = SKAction.repeatForever(SKAction.animate(with: playerTextures, timePerFrame: 0.3))
         
         if competitiveMod {
-            //print("CompetitiveMod")
-            
             generateMaze()
             addBg()
-            generateShape2()
+            generateShape()
             startAndFinishBlocks()
             playerSettings()
             self.willPlayerPosition = player!.position
@@ -149,8 +147,7 @@ class Maze {
         }
         //Считается что массив с лабиринтом уже есть
         //Дальше идёт прорисовка
-        //printMaze()
-        generateShape2()
+        generateShape()
         startAndFinishBlocks()
     }
     
@@ -176,7 +173,7 @@ class Maze {
     }
     
     //Передвигаем плеера по лабиринту
-    func movePlayer(_ direction: Int, playerSpeadChange: Bool) {
+    func movePlayer(_ direction: Int, playerspeedChange: Bool) {
         //Если у нас мультиплеер, то передаём сопернику наше напралвние (только когда мы сами начинаем двигаться, а не заранее)
         if match != nil {
             do {
@@ -258,14 +255,14 @@ class Maze {
         }
         moveResolution = false
         movePlayerDirection = direction
-        if playerSpeadChange {
+        if playerspeedChange {
             playerSpeed = sqrt(CGFloat(count)) * blockSize!.width * 1.5 + 3 + CGFloat(defaults.integer(forKey: "speed")) //Скорость пикселей в секунду
         }
     }
     
     
     //Передвигаем плеера соперника по лабиринту
-    func moveRival(_ direction: Int, playerSpeadChange: Bool) {
+    func moveRival(_ direction: Int, playerspeedChange: Bool) {
         var count = 0
         var qweq: Int = 0 //Чтобы не ругался на too complex в условии while
         var qwew: Int = 0 //Чтобы не ругался на too complex в условии while
@@ -334,7 +331,7 @@ class Maze {
         }
         moveRivalResolution = false
         moveRivalDirection = direction
-        if playerSpeadChange {
+        if playerspeedChange {
             rivalSpeed = sqrt(CGFloat(count)) * blockSize!.width * 1.5 + 3 + rivalSpeedK! //Скорость пикселей в секунду
         }
     }
@@ -842,11 +839,11 @@ class Maze {
         else { return false }
     }
     
-    //Потом удалить (пробник)
-    func generateShape2() {
+    //Обводим контур лабиринта
+    func generateShape() {
         let atlas: SKTextureAtlas? = SKTextureAtlas(named: "roads")
-        var a = 2// колличество декораций, занимающих 1 ячейку
-        var a2 = 2// колличество декораций, занимающих 2 ячейки
+        let a = 2// колличество декораций, занимающих 1 ячейку
+        let a2 = 2// колличество декораций, занимающих 2 ячейки
         for row in 1..<maze!.count-1 {
             let line = maze![row]
             for (col, code) in line.enumerated() {
@@ -854,7 +851,6 @@ class Maze {
                 switch code {
                 case 0:
                     addDecor(row, col: col,k: row%a + 1, k2: col%a2 + 1)
-                    
                     continue
                 case 1:
                     //Тут перерёсток (+)
@@ -937,85 +933,6 @@ class Maze {
                 bg!.addChild(tile)
             }
         }
-    }
-    
-    
-    
-    //Обводим контур лабиринта
-    func generateShape() {
-        mazePath.move(to: CGPoint(x: blockSize!.width, y: -blockSize!.height))
-        var i = 1
-        var j = 2
-        var directionPoint = 1 //0-верх, 1-право, 2-низ, 3-лево
-        mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-        repeat {
-            switch directionPoint {
-            case 0:
-                if maze![i-1][j-1] != 0 { // Проверяем лево
-                    j = (j-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 3
-                } else if maze![i - 1][j] != 0 { //Проверяем верх
-                    i = (i-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 0
-                } else if maze![i][j] != 0 { // Проверяем право
-                    j = (j+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 1
-                }
-            case 1:
-                if maze![i - 1][j] != 0 { //Проверяем верх
-                    i = (i-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 0
-                } else if maze![i][j] != 0 { // Проверяем право
-                    j = (j+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 1
-                } else if maze![i][j - 1] != 0{ // Проверяем низ
-                    i = (i+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 2
-                }
-            case 2:
-                if maze![i][j] != 0 { // Проверяем право
-                    j = (j+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 1
-                } else if maze![i][j - 1] != 0 { // Проверяем низ
-                    i = (i+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 2
-                } else if maze![i-1][j-1] != 0 { // Проверяем лево
-                    j = (j-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 3
-                }
-            case 3:
-                if maze![i][j - 1] != 0 { // Проверяем низ
-                    i = (i+1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 2
-                } else if maze![i-1][j-1] != 0 { // Проверяем лево
-                    j = (j-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 3
-                } else if maze![i - 1][j] != 0 { //Проверяем верх
-                    i = (i-1)
-                    mazePath.addLine(to: CGPoint(x: CGFloat(j) * blockSize!.width, y: CGFloat(-i) * blockSize!.height))
-                    directionPoint = 0
-                }
-            default: break
-            }
-        } while ((i != 1) || (j != 1))
-        mazePath.addLine(to: CGPoint(x: blockSize!.width, y: -blockSize!.height))
-        mazeShape = SKShapeNode(path: mazePath.cgPath, centered: true)
-        mazeShape!.position = CGPoint(x: bg!.frame.width / 2, y: -bg!.frame.height / 2)
-        mazeShape!.zPosition = 1
-        mazeShape!.fillColor = SKColor.white
-        mazeShape!.lineWidth = 0.0
-        bg!.addChild(mazeShape!)
     }
     
     //Вызываем когда наступаем на ускорялку
@@ -1483,7 +1400,7 @@ class Maze {
     
     
     func addInversion(_ count: Int) {
-        for i in 0...count-1 {
+        for _ in 0...count-1 {
             let invers = SKSpriteNode(imageNamed: "inversion")
             invers.name = "Invesion"
             invers.size = blockSize!
@@ -1510,7 +1427,7 @@ class Maze {
     
     func addWarders(_ count: Int) {
         if warderVariants.count > 0 {
-            for i in 0...count-1 {
+            for _ in 0...count-1 {
                 let randomWarder = Int(random(min: 0, max: CGFloat(warderVariants.count)))
                 var pathLength = 0 //Для пути (в блоках)
                 

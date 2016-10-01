@@ -22,7 +22,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     @IBOutlet weak var loadingView: UIView? //Для экрана загрузки мультиплеера
     
     override func loadView() {
-        self.view = SKView(frame: UIScreen.main.applicationFrame)
+        self.view = SKView(frame: UIScreen.main.bounds)
     }
     
     override func viewDidLoad() {
@@ -178,13 +178,13 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
             dataa.copyBytes(to: &receivedPocket, count: dataa.count)
             switch receivedPocket[0] {
             case 0: //print("Соперник - Вверх") //Соперник пошёл вверх
-                scene!.maze!.moveRival(0, playerSpeadChange: true)
+                scene!.maze!.moveRival(0, playerspeedChange: true)
             case 1: //print("Соперник - Вправо") //Соперник пошёл вправо
-                scene!.maze!.moveRival(1, playerSpeadChange: true)
+                scene!.maze!.moveRival(1, playerspeedChange: true)
             case 2: //print("Соперник - Вниз") //Соперник пошёл вниз
-                scene!.maze!.moveRival(2, playerSpeadChange: true)
+                scene!.maze!.moveRival(2, playerspeedChange: true)
             case 3: //print("Соперник - Влево") //Соперник пошёл влево
-                scene!.maze!.moveRival(3, playerSpeadChange: true)
+                scene!.maze!.moveRival(3, playerspeedChange: true)
             case 4:
                 scene!.maze!.rivalPosition!.i = Int(receivedPocket[1])
                 scene!.maze!.rivalPosition!.j = Int(receivedPocket[2])
@@ -265,7 +265,7 @@ class FreeViewController: UIViewController, GKMatchmakerViewControllerDelegate, 
     
     //Это уже не успользуем
     func foundBestHostingPlayer(player: GKPlayer?) {
-        if let bestHosting = player {
+        if player != nil {
             //print(player!.displayName!, " выбран сервером игры")
             if player!.playerID! == GKLocalPlayer.localPlayer().playerID! {
                 scene!.iAmHost = true
